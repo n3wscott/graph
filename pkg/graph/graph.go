@@ -51,7 +51,7 @@ func (g *Graph) newEdge(src, dst *dot.Node) *dot.Edge {
 func (g *Graph) AddChannel(channel eventingv1alpha1.Channel) {
 	ck := channelKey(channel.Name)
 	uri := channel.Status.Address.GetURL()
-	dns := (&uri).String()
+	dns := strings.TrimSuffix((&uri).String(), "/")
 	cn := dot.NewNode("Channel " + channel.Name)
 
 	setNodeShapeForKind(cn, channel.Kind, channel.APIVersion)
@@ -98,7 +98,7 @@ func (g *Graph) AddSubscription(subscription eventingv1alpha1.Subscription) {
 func (g *Graph) AddBroker(broker eventingv1alpha1.Broker) {
 	key := brokerKey(broker.Name)
 	uri := broker.Status.Address.GetURL()
-	dns := (&uri).String()
+	dns := strings.TrimSuffix((&uri).String(), "/")
 	bn := dot.NewNode("Broker " + dns)
 	_ = bn.Set("shape", "oval")
 	_ = bn.Set("label", "Ingress")
@@ -242,9 +242,7 @@ func setNodeShapeForKind(node *dot.Node, kind, apiVersion string) {
 }
 
 func (g *Graph) getOrCreateSink(uri string) *dot.Node {
-	if !strings.HasSuffix(uri, "/") {
-		uri += "/"
-	}
+	uri = strings.TrimSuffix(uri, "/")
 
 	var node *dot.Node
 	var key string
@@ -305,11 +303,7 @@ func (g *Graph) getOrCreateReply(rep *eventingv1alpha1.ReplyStrategy) *dot.Node 
 
 func sinkDNS(source duckv1alpha1.SourceType) string {
 	if source.Status.SinkURI != nil {
-		uri := *(source.Status.SinkURI)
-		if !strings.HasSuffix(uri, "/") {
-			uri += "/"
-		}
-		return uri
+		return strings.TrimSuffix(*(source.Status.SinkURI), "/")
 	}
 	return ""
 }
