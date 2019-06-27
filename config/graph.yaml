@@ -5,9 +5,9 @@ metadata:
 spec:
   template:
     spec:
+      serviceAccountName: n3wscott-graph
       containers:
         - image: github.com/n3wscott/graph/cmd/graph
-          serviceAccountName: n3wscott-graph
           env:
             - name: NAMESPACE
               value: default

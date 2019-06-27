@@ -23,7 +23,6 @@ func (c *Controller) Mux() *http.ServeMux {
 	c.once.Do(func() {
 		m := http.NewServeMux()
 		m.HandleFunc("/ui", c.RootHandler)
-		http.HandleFunc("/favicon.ico", c.Favicon)
 		c.mux = m
 	})
 

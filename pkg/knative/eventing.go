@@ -8,7 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	eventingv1alpha1 "github.com/knative/eventing/pkg/apis/eventing/v1alpha1"
-	duckv1alpha1 "github.com/n3wscott/knap/pkg/apis/duck/v1alpha1"
+	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
 )
 
 func (c *Client) Sources(namespace string) []duckv1alpha1.SourceType {
@@ -46,7 +46,8 @@ func (c *Client) Triggers(namespace string) []eventingv1alpha1.Trigger {
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		log.Fatalf("Failed to List Triggers, %v", err)
+		log.Printf("Failed to List Triggers, %v", err)
+		return nil
 	}
 
 	all := make([]eventingv1alpha1.Trigger, len(list.Items))
@@ -73,7 +74,8 @@ func (c *Client) Brokers(namespace string) []eventingv1alpha1.Broker {
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		log.Fatalf("Failed to List Brokers, %v", err)
+		log.Printf("Failed to List Brokers, %v", err)
+		return nil
 	}
 
 	all := make([]eventingv1alpha1.Broker, len(list.Items))
@@ -100,7 +102,8 @@ func (c *Client) Channels(namespace string) []eventingv1alpha1.Channel {
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		log.Fatalf("Failed to List Channels, %v", err)
+		log.Printf("Failed to List Channels, %v", err)
+		return nil
 	}
 
 	all := make([]eventingv1alpha1.Channel, len(list.Items))
@@ -127,7 +130,8 @@ func (c *Client) Subscriptions(namespace string) []eventingv1alpha1.Subscription
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		log.Fatalf("Failed to List Subscriptions, %v", err)
+		log.Printf("Failed to List Subscriptions, %v", err)
+		return nil
 	}
 
 	all := make([]eventingv1alpha1.Subscription, len(list.Items))
@@ -154,7 +158,8 @@ func (c *Client) EventTypes(namespace string) []eventingv1alpha1.EventType {
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		log.Fatalf("Failed to List EventTypes, %v", err)
+		log.Printf("Failed to List EventTypes, %v", err)
+		return nil
 	}
 
 	all := make([]eventingv1alpha1.EventType, len(list.Items))

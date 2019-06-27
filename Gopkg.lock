@@ -280,17 +280,6 @@
   version = "1.0.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:e9d696e65e7633b2ecaeb819f7726376643610c70e0e01546fbec250b908f089"
-  name = "github.com/n3wscott/knap"
-  packages = [
-    "pkg/apis/duck/v1alpha1",
-    "pkg/knative",
-  ]
-  pruneopts = "UT"
-  revision = "1b7185cbb16d94d61843ab7141a8c208bee9adba"
-
-[[projects]]
   digest = "1:ed9a9c0f456547f1b6690dcca589dad5dd5fb92d4ea149fbed71ff91483fe067"
   name = "github.com/n3wscott/sockeye"
   packages = ["pkg/controller"]
@@ -764,8 +753,8 @@
     "github.com/knative/eventing/pkg/apis/eventing/v1alpha1",
     "github.com/knative/pkg/apis/duck/v1alpha1",
     "github.com/knative/serving/pkg/apis/serving/v1beta1",
-    "github.com/n3wscott/knap/pkg/apis/duck/v1alpha1",
-    "github.com/n3wscott/knap/pkg/knative",
+    "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1",
+    "github.com/n3wscott/graph/pkg/knative",
     "github.com/n3wscott/sockeye/pkg/controller",
     "github.com/tmc/dot",
     "golang.org/x/net/websocket",

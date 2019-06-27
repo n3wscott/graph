@@ -19,7 +19,8 @@ func (c *Client) KnServices(namespace string) []servingv1beta1.Service {
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		log.Fatalf("Failed to List Services, %v", err)
+		log.Printf("Failed to List Services, %v", err)
+		return nil
 	}
 
 	all := make([]servingv1beta1.Service, len(list.Items))

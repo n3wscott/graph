@@ -27,23 +27,23 @@ func getQueryParam(r *http.Request, key string) string {
 	return keys[0]
 }
 
-func (c *Controller) RootHandler(w http.ResponseWriter, r *http.Request) {
-	once.Do(func() {
-		t, _ = template.ParseFiles(
-			c.root+"/templates/index.html",
-			c.root+"/templates/main.html",
-		)
-	})
-
-	c.GraphHTML(w, r)
-}
-
 // TODO: support just fetching the graph image
 
 var defaultFormat = "svg"    // or png
 var defaultFocus = "trigger" // or png
 
-func (c *Controller) GraphHTML(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) RootHandler(w http.ResponseWriter, r *http.Request) {
+	once.Do(func() {
+		var err error
+		t, err = template.ParseFiles(
+			c.root+"/templates/index.html",
+			c.root+"/templates/main.html",
+		)
+		if err != nil {
+			log.Printf("Failed to parse template: %v\n", err)
+		}
+	})
+
 	format := getQueryParam(r, "format")
 	if format == "" {
 		format = defaultFormat
@@ -71,13 +71,18 @@ func (c *Controller) GraphHTML(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	img, err := ioutil.ReadFile(file)
+	if err != nil {
+		log.Printf("read file error %s", err)
+	}
 
 	defer os.Remove(file) // clean up
 
 	var data map[string]interface{}
+	log.Printf("Image is %s", format)
 	if format == "svg" {
 		data = map[string]interface{}{
-			"Image":  img,
+			"svg":    true,
+			"Image":  template.HTML(string(img)),
 			"Format": format,
 		}
 	} else {
@@ -86,7 +91,12 @@ func (c *Controller) GraphHTML(w http.ResponseWriter, r *http.Request) {
 			"Format": fmt.Sprintf("image/%s;base64", format),
 		}
 	}
-	_ = t.Execute(w, data)
+	data["Dot"] = dotGraph
+
+	err = t.Execute(w, data)
+	if err != nil {
+		log.Printf("template execute error %s", err)
+	}
 }
 
 var dot string

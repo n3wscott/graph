@@ -1,8 +1,9 @@
 <div class="graph-container mdl-grid">
-    {{ if (eq .Format "svg")}}
-        {{.Image}}
+  <div class="mdl-cell mdl-cell--12-col">
+    {{ if eq .Format "svg" }}
+        {{ .Image }}
     {{ else }}
-        <img src="data:{{.Format}},{{.Image}}">
+        <img src="data:{{ .Format }},{{ .Image }}">
     {{ end }}
+  </div>
 </div>
-

@@ -21,7 +21,8 @@ func (c *Client) SourceCRDs() []apiextensions.CustomResourceDefinition {
 
 	list, err := c.dc.Resource(gvr).List(metav1.ListOptions{LabelSelector: "eventing.knative.dev/source=true"})
 	if err != nil {
-		log.Fatalf("Failed to List Triggers, %v", err)
+		log.Printf("Failed to List Triggers, %v", err)
+		return nil
 	}
 
 	all := make([]apiextensions.CustomResourceDefinition, len(list.Items))

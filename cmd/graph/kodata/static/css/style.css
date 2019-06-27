@@ -25,6 +25,12 @@
     margin: 0 auto;
 }
 
+svg {
+    vertical-align: middle;
+    display: block;
+    margin: auto;
+}
+
 .graph-content {
     border-radius: 15px;
     padding: 20px 30px;

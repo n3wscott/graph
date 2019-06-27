@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"github.com/n3wscott/knap/pkg/knative"
+	"github.com/n3wscott/graph/pkg/knative"
 	"k8s.io/client-go/dynamic"
 )
 

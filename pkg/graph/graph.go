@@ -3,12 +3,12 @@ package graph
 import (
 	"fmt"
 	eventingv1alpha1 "github.com/knative/eventing/pkg/apis/eventing/v1alpha1"
-	knduckv1alpha1 "github.com/knative/pkg/apis/duck/v1alpha1"
 	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
-	duckv1alpha1 "github.com/n3wscott/knap/pkg/apis/duck/v1alpha1"
 	"github.com/tmc/dot"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"strings"
+
+	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
 )
 
 type Graph struct {
@@ -50,7 +50,8 @@ func (g *Graph) newEdge(src, dst *dot.Node) *dot.Edge {
 
 func (g *Graph) AddChannel(channel eventingv1alpha1.Channel) {
 	ck := channelKey(channel.Name)
-	dns := addressableDNS(channel.Status.Address)
+	uri := channel.Status.Address.GetURL()
+	dns := (&uri).String()
 	cn := dot.NewNode("Channel " + channel.Name)
 
 	setNodeShapeForKind(cn, channel.Kind, channel.APIVersion)
@@ -96,7 +97,8 @@ func (g *Graph) AddSubscription(subscription eventingv1alpha1.Subscription) {
 
 func (g *Graph) AddBroker(broker eventingv1alpha1.Broker) {
 	key := brokerKey(broker.Name)
-	dns := addressableDNS(broker.Status.Address)
+	uri := broker.Status.Address.GetURL()
+	dns := (&uri).String()
 	bn := dot.NewNode("Broker " + dns)
 	_ = bn.Set("shape", "oval")
 	_ = bn.Set("label", "Ingress")
@@ -195,16 +197,7 @@ func (g *Graph) AddKnService(service servingv1beta1.Service) {
 	                 value: http://default-broker.default.svc.cluster.local/
 	*/
 
-	var config servingv1beta1.ConfigurationSpec
-	if service.Spec.RunLatest != nil {
-		config = service.Spec.RunLatest.Configuration
-	} else if service.Spec.Release != nil {
-		config = service.Spec.Release.Configuration
-	} else {
-		// nope out.
-		return
-	}
-	_ = config
+	config := service.Spec.ConfigurationSpec
 
 	key := servingKey(service.Kind, service.Name)
 
@@ -226,7 +219,7 @@ func (g *Graph) AddKnService(service servingv1beta1.Service) {
 		g.AddNode(svc)
 	}
 
-	for _, env := range config.RevisionTemplate.Spec.Container.Env {
+	for _, env := range config.Template.Spec.Containers[0].Env {
 		switch env.Name {
 		case "SINK":
 			fallthrough
@@ -240,7 +233,7 @@ func (g *Graph) AddKnService(service servingv1beta1.Service) {
 }
 
 func setNodeShapeForKind(node *dot.Node, kind, apiVersion string) {
-	if apiVersion == "serving.knative.dev/v1alpha1" {
+	if apiVersion == "serving.knative.dev/v1beta1" {
 		switch kind {
 		case "Service":
 			_ = node.Set("shape", "septagon")
@@ -321,14 +314,6 @@ func sinkDNS(source duckv1alpha1.SourceType) string {
 	return ""
 }
 
-func addressableDNS(address knduckv1alpha1.Addressable) string {
-	uri := fmt.Sprintf("http://%s", address.Hostname)
-	if !strings.HasSuffix(uri, "/") {
-		uri += "/"
-	}
-	return uri
-}
-
 func channelKey(name string) string {
 	return eventingKey("channel", name)
 }
@@ -362,7 +347,7 @@ func eventingKey(kind, name string) string {
 }
 
 func servingKey(kind, name string) string {
-	return key("serving.knative.dev", "v1alpha1", kind, name)
+	return key("serving.knative.dev", "v1beta1", kind, name)
 }
 
 func triggerKey(name string) string {

@@ -96,8 +96,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: n3wscott-graph-resolver
-  labels:
-    events.cloud.run/release: devel
 subjects:
   - kind: ServiceAccount
     name: controller
