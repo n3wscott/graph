@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: n3wscott-graph
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: n3wscott-graph
+rules:
+  # Sources read
+  - apiGroups:
+      - sources.eventing.knative.dev
+    resources: ['*']
+    verbs: &readOnly
+      - get
+      - list
+      - watch
+
+  # Eventing read
+  - apiGroups:
+      - eventing.knative.dev
+    resources: ['*']
+    verbs: *readOnly
+
+  # Serving read
+  - apiGroups:
+      - serving.knative.dev
+    resources:
+      - services
+    verbs: *readOnly
+
+  # PubSub read
+  - apiGroups:
+      - pubsub.cloud.run
+    resources:
+      - pullsubscriptions
+      - topics
+    verbs: *readOnly
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: n3wscott-graph
+rules:
+  # API Extensions read
+  - apiGroups:
+      -  apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs: &readOnly
+      - get
+      - list
+      - watch
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: n3wscott-graph
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: n3wscott-graph
+subjects:
+  - kind: ServiceAccount
+    name: n3wscott-graph
+    namespace: default
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: n3wscott-graph
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: n3wscott-graph
+subjects:
+  - kind: ServiceAccount
+    name: n3wscott-graph
+    namespace: default
+  - kind: ServiceAccount
+    name: n3wscott-graph
+    namespace: default
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: n3wscott-graph-resolver
+  labels:
+    events.cloud.run/release: devel
+subjects:
+  - kind: ServiceAccount
+    name: controller
+    namespace: n3wscott-graph
+# An aggregated ClusterRole for all Addressable CRDs.
+# Ref: https://github.com/knative/eventing/blob/master/config/200-addressable-resolvers-clusterrole.yaml
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: addressable-resolver

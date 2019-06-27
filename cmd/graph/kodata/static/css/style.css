@@ -1,0 +1,86 @@
+.graph-ribbon {
+    width: 100%;
+    height: 40vh;
+    background-color: #3F51B5;
+    flex-shrink: 0;
+}
+
+.graph-main {
+    margin-top: -35vh;
+    flex-shrink: 0;
+}
+
+.graph-header .mdl-layout__header-row {
+    padding-left: 40px;
+}
+
+.graph-logo-image {
+    height: 100px;
+    padding-top: 35px;
+}
+
+.graph-container {
+    max-width: 1600px;
+    width: calc(100% - 16px);
+    margin: 0 auto;
+}
+
+.graph-content {
+    border-radius: 15px;
+    padding: 20px 30px;
+    overflow-x: auto;
+}
+
+.graph-layout.is-small-screen .graph-content {
+    padding: 10px 15px;
+}
+
+.graph-content h3 {
+    margin-top: 48px;
+}
+
+.graph-table {
+    width: calc(100% - 16px);
+}
+
+.graph-list-item {
+    width: calc(100% - 16px);
+}
+
+.graph-fab {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+}
+
+.graph-footer {
+    padding-left: 40px;
+}
+
+.graph-footer .mdl-mini-footer--link-list a {
+    font-size: 13px;
+}
+
+pre {
+    padding: 5px; margin: 5px;
+}
+
+.json-string {
+    color: green;
+}
+
+.json-umber {
+    color: darkorange;
+}
+
+.json-boolean {
+    color: blue;
+}
+
+.json-null {
+    color: magenta;
+}
+
+.json-key {
+    color: red;
+}
