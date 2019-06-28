@@ -28,6 +28,7 @@ func New(ns string) *Graph {
 	_ = g.Set("shape", "box")
 	_ = g.Set("label", "Triggers in "+ns)
 	_ = g.Set("rankdir", "LR")
+	//_ = g.Set("compound", "true")
 
 	graph := &Graph{
 		Graph:       g,
