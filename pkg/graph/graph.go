@@ -2,13 +2,15 @@ package graph
 
 import (
 	"fmt"
-	eventingv1alpha1 "github.com/knative/eventing/pkg/apis/eventing/v1alpha1"
-	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
-	"github.com/tmc/dot"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"strings"
 
+	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	eventingv1alpha1 "github.com/knative/eventing/pkg/apis/eventing/v1alpha1"
+	messagingv1alpha1 "github.com/knative/eventing/pkg/apis/messaging/v1alpha1"
+	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
 	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
+	"github.com/tmc/dot"
 )
 
 type Graph struct {
@@ -198,7 +200,6 @@ func (g *Graph) AddKnService(service servingv1beta1.Service) {
 	*/
 
 	config := service.Spec.ConfigurationSpec
-
 	key := servingKey(service.Kind, service.Name)
 
 	var svc *dot.Node
@@ -230,6 +231,72 @@ func (g *Graph) AddKnService(service servingv1beta1.Service) {
 			g.AddEdge(e)
 		}
 	}
+}
+
+func (g *Graph) AddSequence(seq messagingv1alpha1.Sequence) {
+
+	key := sequenceKey(seq.Name)
+
+	uri := seq.Status.Address.GetURL()
+	dns := strings.TrimSuffix((&uri).String(), "/")
+
+	sg := dot.NewSubgraph(fmt.Sprintf("cluster_%d", len(g.subgraphs)))
+	_ = sg.Set("label", fmt.Sprintf("Sequence %s\n%s", seq.Name, dns))
+	//	_ = sg.Set("rankdir", "BT")
+
+	g.dnsToKey[dns] = key
+	sn := dot.NewNode("Sequence " + dns)
+	_ = sn.Set("label", "Start")
+	//	_ = sn.Set("rank", "min")
+
+	g.nodes[key] = sn
+	sg.AddNode(sn)
+
+	previousNode := sn
+
+	for num, step := range seq.Spec.Steps {
+		stepKey := sequenceStepKey(seq.Name, num)
+		stepn := dot.NewNode(stepKey)
+		_ = stepn.Set("label", fmt.Sprintf("Step %d", num))
+		_ = stepn.Set("shape", "box")
+
+		// Add to seq subgraph.
+		sg.AddNode(stepn)
+
+		g.nodes[stepKey] = stepn
+
+		if sub := g.getOrCreateSubscriber(&step); sub != nil {
+			e := dot.NewEdge(stepn, sub)
+			_ = e.Set("dir", "both")
+			g.AddEdge(e)
+		}
+
+		e := dot.NewEdge(previousNode, stepn)
+		g.AddEdge(e)
+		previousNode = stepn
+	}
+
+	if seq.Spec.Reply != nil {
+		replyn := dot.NewNode("Reply " + dns)
+		_ = replyn.Set("label", "Reply")
+		//_ = replyn.Set("rank", "max")
+		//g.nodes[] = rn
+		sg.AddNode(replyn)
+
+		// TODO where this points.
+		e := dot.NewEdge(previousNode, replyn)
+		g.AddEdge(e)
+
+		rk := gvkKey(seq.Spec.Reply.GroupVersionKind(), seq.Spec.Reply.Name)
+		if rn, ok := g.nodes[rk]; ok {
+			e := dot.NewEdge(replyn, rn)
+			g.AddEdge(e)
+		}
+	}
+
+	g.subgraphs[key] = sg
+	g.AddSubgraph(sg)
+
 }
 
 func setNodeShapeForKind(node *dot.Node, kind, apiVersion string) {
@@ -320,6 +387,18 @@ func brokerKey(name string) string {
 	return eventingKey("broker", name)
 }
 
+func triggerKey(name string) string {
+	return eventingKey("trigger", name)
+}
+
+func sequenceKey(name string) string {
+	return messagingKey("sequence", name)
+}
+
+func sequenceStepKey(name string, step int) string {
+	return messagingKey("sequencestep", fmt.Sprintf("%s-%d", name, step))
+}
+
 func gvkKey(gvk schema.GroupVersionKind, name string) string {
 	return strings.ToLower(fmt.Sprintf("%s/%s/%s/%s", gvk.Group, gvk.Version, gvk.Kind, name))
 }
@@ -340,10 +419,10 @@ func eventingKey(kind, name string) string {
 	return key("eventing.knative.dev", "v1alpha1", kind, name)
 }
 
-func servingKey(kind, name string) string {
-	return key("serving.knative.dev", "v1beta1", kind, name)
+func messagingKey(kind, name string) string {
+	return key("messaging.knative.dev", "v1alpha1", kind, name)
 }
 
-func triggerKey(name string) string {
-	return eventingKey("trigger", name)
+func servingKey(kind, name string) string {
+	return key("serving.knative.dev", "v1beta1", kind, name)
 }

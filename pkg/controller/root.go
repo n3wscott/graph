@@ -91,7 +91,7 @@ func (c *Controller) RootHandler(w http.ResponseWriter, r *http.Request) {
 			"Format": fmt.Sprintf("image/%s;base64", format),
 		}
 	}
-	data["Dot"] = dotGraph
+	data["Dot"] = template.HTML(dotGraph)
 
 	err = t.Execute(w, data)
 	if err != nil {

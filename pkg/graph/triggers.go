@@ -15,11 +15,6 @@ func ForTriggers(client dynamic.Interface, ns string) string {
 		g.AddBroker(broker)
 	}
 
-	// load the sources
-	for _, source := range c.Sources(ns) {
-		g.AddSource(source)
-	}
-
 	// load the triggers
 	for _, trigger := range c.Triggers(ns) {
 		g.AddTrigger(trigger)
@@ -29,6 +24,17 @@ func ForTriggers(client dynamic.Interface, ns string) string {
 	for _, service := range c.KnServices(ns) {
 		g.AddKnService(service)
 	}
+
+	// load the sequences
+	for _, sequence := range c.Sequences(ns) {
+		g.AddSequence(sequence)
+	}
+
+	// Last load the sources.
+	for _, source := range c.Sources(ns) {
+		g.AddSource(source)
+	}
+
 	return g.String()
 }
 

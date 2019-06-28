@@ -2,27 +2,6 @@
 
 
 [[projects]]
-  digest = "1:afdd3095221c5ca4023d3c0e4f1813f9d1c5ece27735dba900fe859da52130e6"
-  name = "github.com/cloudevents/sdk-go"
-  packages = [
-    ".",
-    "pkg/cloudevents",
-    "pkg/cloudevents/client",
-    "pkg/cloudevents/codec",
-    "pkg/cloudevents/context",
-    "pkg/cloudevents/datacodec",
-    "pkg/cloudevents/datacodec/json",
-    "pkg/cloudevents/datacodec/xml",
-    "pkg/cloudevents/observability",
-    "pkg/cloudevents/transport",
-    "pkg/cloudevents/transport/http",
-    "pkg/cloudevents/types",
-  ]
-  pruneopts = "UT"
-  revision = "56931988abe3adf6792b5c6e575ee5f573e9ccbc"
-  version = "0.7.0"
-
-[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -125,14 +104,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:582b704bebaa06b48c29b0cec224a6058a09c86883aaddabde889cd1a5f73e1b"
-  name = "github.com/google/uuid"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
-  version = "v1.1.1"
-
-[[projects]]
   digest = "1:d1a3774c1f8336a21669d6da87a7bafb4d6171a84752268b7011e767d6722c2b"
   name = "github.com/googleapis/gnostic"
   packages = [
@@ -199,12 +170,14 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:d2934150a757de3ac550563742b8e9ae27c60104ab4021825ebc9c4fc9ecb202"
+  digest = "1:8e941d00bbf9b6604a618d8fde137bee0fce0915b880a2423c6738343e8a5a76"
   name = "github.com/knative/eventing"
   packages = [
     "pkg/apis/duck/v1alpha1",
     "pkg/apis/eventing",
     "pkg/apis/eventing/v1alpha1",
+    "pkg/apis/messaging",
+    "pkg/apis/messaging/v1alpha1",
   ]
   pruneopts = "UT"
   revision = "ab2600952f58339a0c8f673a712c4acdd5912757"
@@ -232,15 +205,13 @@
   revision = "d82505e6c5b4ce46562d6c242be0e706791f35bd"
 
 [[projects]]
-  digest = "1:7d83c765e49b6f833457e557c965b0eb4075670953c27ba83ed40f118bb44c4f"
+  digest = "1:ae23edfe84f4c1bd0abc8c4151997bbb1df8625e8284826f572df8dae5d11020"
   name = "github.com/knative/serving"
   packages = [
     "pkg/apis/autoscaling",
     "pkg/apis/config",
     "pkg/apis/networking",
-    "pkg/apis/networking/v1alpha1",
     "pkg/apis/serving",
-    "pkg/apis/serving/v1alpha1",
     "pkg/apis/serving/v1beta1",
   ]
   pruneopts = "UT"
@@ -278,14 +249,6 @@
   pruneopts = "UT"
   revision = "4b7aa43c6742a2c18fdef89dd197aaae7dac7ccd"
   version = "1.0.1"
-
-[[projects]]
-  digest = "1:ed9a9c0f456547f1b6690dcca589dad5dd5fb92d4ea149fbed71ff91483fe067"
-  name = "github.com/n3wscott/sockeye"
-  packages = ["pkg/controller"]
-  pruneopts = "UT"
-  revision = "3a9cc6978ad394d83eaacb607431d81683720f4a"
-  version = "0.1.0"
 
 [[projects]]
   branch = "master"
@@ -340,28 +303,6 @@
   revision = "6d252d5ff882ba9963502860f30ab3673c6c7322"
 
 [[projects]]
-  digest = "1:d487140b705c17500f3c0ebae80c6162c563c0f8dcdcc8fa0216889c2582da8e"
-  name = "go.opencensus.io"
-  packages = [
-    ".",
-    "internal",
-    "internal/tagencoding",
-    "metric/metricdata",
-    "metric/metricproducer",
-    "resource",
-    "stats",
-    "stats/internal",
-    "stats/view",
-    "tag",
-    "trace",
-    "trace/internal",
-    "trace/tracestate",
-  ]
-  pruneopts = "UT"
-  revision = "9c377598961b706d1542bd2d84d538b5094d596e"
-  version = "v0.22.0"
-
-[[projects]]
   digest = "1:777e729b475d3895c7229552aa10076f0d177daf37c0a72258006d046d329960"
   name = "go.uber.org/atomic"
   packages = ["."]
@@ -402,7 +343,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:933be18f1df14d2994ae677fdd37d0ab99bed489734a5f71655cf718833a1fe5"
+  digest = "1:92f213869ee738babb2f2bfb0527726d565dc3c1f51a22bfbf58e07448f7b895"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -411,7 +352,6 @@
     "http2",
     "http2/hpack",
     "idna",
-    "websocket",
   ]
   pruneopts = "UT"
   revision = "3f473d35a33aa6fdd203e306dc439b797820e3f1"
@@ -746,18 +686,11 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/cloudevents/sdk-go",
-    "github.com/cloudevents/sdk-go/pkg/cloudevents/codec",
-    "github.com/google/uuid",
     "github.com/kelseyhightower/envconfig",
     "github.com/knative/eventing/pkg/apis/eventing/v1alpha1",
-    "github.com/knative/pkg/apis/duck/v1alpha1",
+    "github.com/knative/eventing/pkg/apis/messaging/v1alpha1",
     "github.com/knative/serving/pkg/apis/serving/v1beta1",
-    "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1",
-    "github.com/n3wscott/graph/pkg/knative",
-    "github.com/n3wscott/sockeye/pkg/controller",
     "github.com/tmc/dot",
-    "golang.org/x/net/websocket",
     "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/runtime",

@@ -25,6 +25,12 @@ rules:
     resources: ['*']
     verbs: *readOnly
 
+  # Messaging read
+  - apiGroups:
+      - messaging.knative.dev
+    resources: ['*']
+    verbs: *readOnly
+
   # Serving read
   - apiGroups:
       - serving.knative.dev
