@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/n3wscott/graph/pkg/config"
-	"github.com/n3wscott/graph/pkg/controller"
 	"k8s.io/client-go/dynamic"
 	"log"
 	"net/http"
@@ -13,6 +11,12 @@ import (
 	"os/user"
 	"path"
 	"strings"
+
+	"github.com/n3wscott/graph/pkg/config"
+	"github.com/n3wscott/graph/pkg/controller"
+
+	// Uncomment the following line to load the gcp plugin (only required to authenticate against GKE clusters).
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 type envConfig struct {

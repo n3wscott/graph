@@ -73,6 +73,27 @@ func (g *Graph) AddChannel(channel eventingv1alpha1.Channel) {
 	g.AddSubgraph(cg)
 }
 
+func (g *Graph) AddInMemoryChannel(channel messagingv1alpha1.InMemoryChannel) {
+	ck := inMemoryChannelKey(channel.Name)
+	uri := channel.Status.Address.GetURL()
+	dns := strings.TrimSuffix((&uri).String(), "/")
+	cn := dot.NewNode("InMemoryChannel " + channel.Name)
+
+	setNodeShapeForKind(cn, channel.Kind, channel.APIVersion)
+
+	_ = cn.Set("shape", "oval") // TODO move to setNodeShapeForKind
+	_ = cn.Set("label", "Ingress")
+
+	g.nodes[ck] = cn
+	g.dnsToKey[dns] = ck
+
+	cg := dot.NewSubgraph(fmt.Sprintf("cluster_%d", len(g.subgraphs)))
+	_ = cg.Set("label", fmt.Sprintf("InMemoryChannel %s\n%s", channel.Name, dns))
+	g.subgraphs[ck] = cg
+	cg.AddNode(cn)
+	g.AddSubgraph(cg)
+}
+
 func (g *Graph) AddSubscription(subscription eventingv1alpha1.Subscription) {
 	sk := subscriptionKey(subscription.Name)
 	sn := dot.NewNode("Subscription " + subscription.Name)
@@ -184,6 +205,7 @@ func (g *Graph) AddTrigger(trigger eventingv1alpha1.Trigger) {
 	if sub := g.getOrCreateSubscriber(trigger.Spec.Subscriber); sub != nil {
 		e := dot.NewEdge(tn, sub)
 		_ = e.Set("dir", "both")
+		fmt.Println("sub", sub, e)
 		g.AddEdge(e)
 	}
 }
@@ -237,6 +259,8 @@ func (g *Graph) AddKnService(service servingv1beta1.Service) {
 		g.nodes[key] = svc
 		g.AddNode(svc)
 	}
+
+	fmt.Println(service, "kn svc:", svc)
 
 	for _, env := range config.Template.Spec.Containers[0].Env {
 		switch env.Name {
@@ -335,6 +359,7 @@ func (g *Graph) getOrCreateSink(uri string) *dot.Node {
 	if key, ok = g.dnsToKey[uri]; !ok {
 		node = dot.NewNode("UnknownSink " + uri)
 		g.AddNode(node)
+		g.nodes[key] = node
 	}
 	return g.nodes[key]
 }
@@ -395,6 +420,10 @@ func sinkDNS(source duckv1alpha1.SourceType) string {
 
 func channelKey(name string) string {
 	return eventingKey("channel", name)
+}
+
+func inMemoryChannelKey(name string) string {
+	return messagingKey("inmemorychannel", name)
 }
 
 func subscriptionKey(name string) string {
