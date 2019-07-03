@@ -10,6 +10,11 @@ func ForTriggers(client dynamic.Interface, ns string) string {
 
 	c := knative.New(client)
 
+	// First pre-load the services.
+	for _, service := range c.KnServices(ns) {
+		g.LoadKnService(service)
+	}
+
 	// load the brokers
 	for _, broker := range c.Brokers(ns) {
 		g.AddBroker(broker)
@@ -42,6 +47,11 @@ func ForSubscriptions(client dynamic.Interface, ns string) string {
 	g := New(ns)
 
 	c := knative.New(client)
+
+	// First pre-load the services.
+	for _, service := range c.KnServices(ns) {
+		g.LoadKnService(service)
+	}
 
 	// load the brokers
 	for _, broker := range c.Brokers(ns) {

@@ -67,7 +67,7 @@ func (c *Controller) RootHandler(w http.ResponseWriter, r *http.Request) {
 
 	file, err := dotToImage(format, []byte(dotGraph))
 	if err != nil {
-		log.Printf("dotToImage error %s", err)
+		log.Printf("dotToImage error %s\n\n%s\n", err, dotGraph)
 		return
 	}
 	img, err := ioutil.ReadFile(file)

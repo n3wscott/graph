@@ -9,8 +9,9 @@ import (
 	eventingv1alpha1 "github.com/knative/eventing/pkg/apis/eventing/v1alpha1"
 	messagingv1alpha1 "github.com/knative/eventing/pkg/apis/messaging/v1alpha1"
 	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
-	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
 	"github.com/tmc/dot"
+
+	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
 )
 
 type Graph struct {
@@ -185,21 +186,35 @@ func (g *Graph) AddTrigger(trigger eventingv1alpha1.Trigger) {
 	}
 }
 
-func (g *Graph) AddKnService(service servingv1beta1.Service) {
-	/*
-	   spec:
-	     runLatest:
-	       configuration:
-	         revisionTemplate:
-	           metadata:
-	             creationTimestamp: null
-	           spec:
-	             container:
-	               env:
-	               - name: TARGET
-	                 value: http://default-broker.default.svc.cluster.local/
-	*/
+func (g *Graph) LoadKnService(service servingv1beta1.Service) {
+	key := servingKey(service.Kind, service.Name)
 
+	var svc *dot.Node
+	var ok bool
+	label := ""
+	if svc, ok = g.nodes[key]; !ok {
+		label = fmt.Sprintf("%s\nKind: %s\n%s",
+			service.Name,
+			service.Kind,
+			service.APIVersion,
+		)
+		svc = dot.NewNode(label)
+		setNodeShapeForKind(svc, service.Kind, service.APIVersion)
+
+		_ = svc.Set("shape", "septagon")
+
+		g.nodes[key] = svc
+		g.AddNode(svc)
+
+		if service.Status.Address != nil && service.Status.Address.URL != nil {
+			dns := service.Status.Address.URL.String()
+			g.dnsToKey[dns] = key
+			fmt.Println(key, "-->", dns)
+		}
+	}
+}
+
+func (g *Graph) AddKnService(service servingv1beta1.Service) {
 	config := service.Spec.ConfigurationSpec
 	key := servingKey(service.Kind, service.Name)
 
