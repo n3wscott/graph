@@ -124,6 +124,8 @@ func (g *Graph) AddSource(source duckv1alpha1.SourceType) {
 	g.AddNode(sn)
 	g.nodes[key] = sn
 
+	fmt.Println("source ", source.Name, sn.String())
+
 	sink := sinkDNS(source)
 
 	if sink != "" {
@@ -201,7 +203,7 @@ func (g *Graph) LoadKnService(service servingv1beta1.Service) {
 		svc = dot.NewNode(label)
 		setNodeShapeForKind(svc, service.Kind, service.APIVersion)
 
-		_ = svc.Set("shape", "septagon")
+		//_ = svc.Set("shape", "septagon")
 
 		g.nodes[key] = svc
 		g.AddNode(svc)
@@ -230,7 +232,7 @@ func (g *Graph) AddKnService(service servingv1beta1.Service) {
 		svc = dot.NewNode(label)
 		setNodeShapeForKind(svc, service.Kind, service.APIVersion)
 
-		_ = svc.Set("shape", "septagon")
+		//_ = svc.Set("shape", "septagon")
 
 		g.nodes[key] = svc
 		g.AddNode(svc)
