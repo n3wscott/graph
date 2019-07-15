@@ -99,7 +99,6 @@ func (g *Graph) AddSubscription(subscription eventingv1alpha1.Subscription) {
 	sn := dot.NewNode("Subscription " + subscription.Name)
 
 	ck := gvkKey(subscription.Spec.Channel.GroupVersionKind(), subscription.Spec.Channel.Name)
-
 	if cg, ok := g.subgraphs[ck]; !ok {
 		g.AddNode(sn)
 	} else {
@@ -401,7 +400,7 @@ func (g *Graph) getOrCreateSubscriber(subscriber *eventingv1alpha1.SubscriberSpe
 
 func (g *Graph) getOrCreateReply(rep *eventingv1alpha1.ReplyStrategy) *dot.Node {
 	if rep != nil && rep.Channel != nil {
-		ck := channelKey(rep.Channel.Name)
+		ck := gvkKey(rep.Channel.GroupVersionKind(), rep.Channel.Name)
 		if cn, ok := g.nodes[ck]; !ok {
 			cn = dot.NewNode("Unknown Channel " + rep.Channel.Name)
 		} else {
