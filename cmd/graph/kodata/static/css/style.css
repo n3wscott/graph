@@ -91,3 +91,9 @@ pre {
 .json-key {
     color: red;
 }
+
+.list-fab {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+}

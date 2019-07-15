@@ -23,6 +23,7 @@ func (c *Controller) Mux() *http.ServeMux {
 	c.once.Do(func() {
 		m := http.NewServeMux()
 		m.HandleFunc("/ui", c.RootHandler)
+		m.HandleFunc("/list", c.ListHandler)
 		c.mux = m
 	})
 

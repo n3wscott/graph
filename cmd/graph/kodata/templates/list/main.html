@@ -1,0 +1,26 @@
+<div class="graph-container mdl-grid" id="here">
+
+</div>
+
+<button id="fab" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored list-fab">
+    <i class="material-icons">clear</i>
+</button>
+
+<script>
+(function() {
+    document.getElementById("fab").addEventListener('click', function() {
+        let btn = document.createElement('button'),
+            btnClasses = ['mdl-button', 'mdl-js-button', 'mdl-js-ripple-effect'];
+        btnClasses.forEach(function (item) {
+            btn.classList.add(item);
+        });
+        btn.innerText = emoji.next();
+        btn.onclick = function () {
+            document.querySelector('.mdl-grid').removeChild(btn);
+            console.log("deleted");
+        };
+        document.querySelector('.mdl-grid').appendChild(btn);
+        componentHandler.upgradeAllRegistered();
+    });
+})();
+</script>
