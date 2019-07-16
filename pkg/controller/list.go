@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
@@ -28,4 +29,18 @@ func (c *Controller) ListHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("template execute error %s", err)
 	}
+}
+
+type TaskDelete struct {
+	ID string `json:"id,omitempty"`
+}
+
+func (c *Controller) ListDeleteHandler(w http.ResponseWriter, req *http.Request) {
+	decoder := json.NewDecoder(req.Body)
+	var t TaskDelete
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+	log.Println(t.ID)
 }

@@ -24,6 +24,9 @@ func (c *Controller) Mux() *http.ServeMux {
 		m := http.NewServeMux()
 		m.HandleFunc("/ui", c.RootHandler)
 		m.HandleFunc("/list", c.ListHandler)
+		m.HandleFunc("/list/delete", c.ListDeleteHandler)
+		m.HandleFunc("/tasks", c.TasksHandler)
+		m.HandleFunc("/tasks/", c.TasksHandler)
 		c.mux = m
 	})
 
