@@ -24,7 +24,7 @@
                 .then(res => res.text())
                 .then(text => {
                     let obj = JSON.parse(text);
-                    document.querySelector('.mdl-grid').removeChild(obj);
+                    //document.querySelector('.mdl-grid').removeChild(obj); // TODO: implement the async delete
                     console.log("deleted - " + obj.id);
                 })
                 .catch(err => {

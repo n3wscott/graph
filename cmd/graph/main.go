@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/cloudevents/sdk-go"
 	"github.com/kelseyhightower/envconfig"
 	"k8s.io/client-go/dynamic"
 	"log"
@@ -23,6 +24,7 @@ type envConfig struct {
 	FilePath  string `envconfig:"FILE_PATH" default:"/var/run/ko/" required:"true"`
 	Namespace string `envconfig:"NAMESPACE" default:"default" required:"true"`
 	Port      int    `envconfig:"PORT" default:"8080" required:"true"`
+	Target    string `envconfig:"TARGET"`
 }
 
 var (
@@ -59,6 +61,25 @@ func main() {
 	client := dynamic.NewForConfigOrDie(cfg)
 
 	c := controller.New(env.FilePath, env.Namespace, client)
+
+	if env.Target != "" {
+		t, err := cloudevents.NewHTTPTransport(
+			cloudevents.WithBinaryEncoding(),
+			cloudevents.WithTarget(env.Target),
+		)
+		if err != nil {
+			panic(err)
+		}
+		ce, err := cloudevents.NewClient(t,
+			cloudevents.WithTimeNow(),
+			cloudevents.WithUUIDs(),
+		)
+		if err != nil {
+			panic(err)
+		}
+		c.CE = ce
+		log.Println("Will target", env.Target)
+	}
 
 	c.Mux().Handle("/static/", http.StripPrefix("/static/",
 		http.FileServer(http.Dir(env.FilePath+"static"))))
