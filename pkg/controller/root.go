@@ -44,6 +44,8 @@ func (c *Controller) RootHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	})
 
+	fmt.Println("handling", r.URL)
+
 	format := getQueryParam(r, "format")
 	if format == "" {
 		format = defaultFormat

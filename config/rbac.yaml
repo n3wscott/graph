@@ -46,6 +46,11 @@ rules:
       - topics
     verbs: *readOnly
 
+  # N3wscott read
+  - apiGroups:
+      - n3wscott.com
+    resources: ['*']
+    verbs: *readOnly
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
