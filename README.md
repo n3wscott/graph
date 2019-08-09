@@ -14,21 +14,21 @@ installed.
 
 # Deploying
 
-## From Release 0.1.0
+## From Release v0.2.0
 
 To install into the `default` namespace,
 
 ```shell
-curl -L https://github.com/n3wscott/graph/releases/download/0.1.0/graph.yaml \
+curl -L https://github.com/n3wscott/graph/releases/download/v0.2.0/graph.yaml \
   | sed "s/default/${NAMESPACE}/" \
-  | kubectl apply -f https://github.com/n3wscott/graph/releases/download/0.1.0/graph.yaml
+  | kubectl apply -f https://github.com/n3wscott/graph/releases/download/v0.2.0/graph.yaml
 ```
 
 To install into a `test` namespace,
 
 ```shell
 export NAMESPACE=test # <-- update test to your target namespace.
-curl -L https://github.com/n3wscott/graph/releases/download/0.1.0/graph.yaml \
+curl -L https://github.com/n3wscott/graph/releases/download/v0.2.0/graph.yaml \
   | sed "s/default/${NAMESPACE}/" \
   | kubectl apply -n $NAMESPACE --filename -
 ```
