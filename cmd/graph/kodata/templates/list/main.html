@@ -1,0 +1,64 @@
+<div class="graph-container mdl-grid" id="here">
+
+</div>
+
+<button id="fab" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored list-fab">
+    <i class="material-icons">clear</i>
+</button>
+
+<script>
+(function() {
+
+    function addButton(obj) {
+        let btn = document.createElement('button'),
+            btnClasses = ['mdl-button', 'mdl-js-button', 'mdl-button--fab', 'mdl-button--mini-fab', 'mdl-button--colored'];
+        //btnClasses = ['mdl-button', 'mdl-js-button', 'mdl-js-ripple-effect'];
+        btnClasses.forEach(function (item) {
+            btn.classList.add(item);
+        });
+        btn.innerText = emoji.next();
+        btn.data = obj;
+        btn.onclick = function () {
+            btn.disabled = true;
+            fetch('/tasks/'+btn.data.id, {method: 'DELETE'})
+                .then(res => res.text())
+                .then(text => {
+                    let obj = JSON.parse(text);
+                    //document.querySelector('.mdl-grid').removeChild(obj); // TODO: implement the async delete
+                    console.log("deleted - " + obj.id);
+                })
+                .catch(err => {
+                    // todo
+                    console.log(err);
+                });
+        };
+        document.querySelector('.mdl-grid').appendChild(btn);
+        componentHandler.upgradeAllRegistered();
+    }
+
+    document.getElementById("fab").addEventListener('click', function() {
+
+        let node = document.querySelector('.mdl-grid');
+        while (node.firstChild) {
+            node.removeChild(node.firstChild);
+        }
+
+        // ---
+
+        fetch('/tasks', {method: 'GET'})
+            .then(res => res.text())
+            .then(text => {
+                let list = JSON.parse(text);
+                console.log(list);
+                list.forEach(function(element) {
+                    addButton(element);
+                });
+            })
+            .catch(err => {
+                // todo
+                console.log(err);
+            });
+    });
+
+})();
+</script>
