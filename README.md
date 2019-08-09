@@ -19,14 +19,14 @@ installed.
 To install into the `default` namespace,
 
 ```shell
-kubectl apply -f https://github.com/n3wscott/graph/releases/download/v0.2.0/graph.yaml
+kubectl apply -f https://github.com/n3wscott/graph/releases/download/v0.2.0/release.yaml
 ```
 
 To install into a `test` namespace,
 
 ```shell
 export NAMESPACE=test # <-- update test to your target namespace.
-curl -L https://github.com/n3wscott/graph/releases/download/v0.2.0/graph.yaml \
+curl -L https://github.com/n3wscott/graph/releases/download/v0.2.0/release.yaml \
   | sed "s/default/${NAMESPACE}/" \
   | kubectl apply -n $NAMESPACE --filename -
 ```

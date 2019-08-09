@@ -3,19 +3,19 @@ package knative
 import (
 	"log"
 
-	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
+	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func (c *Client) KnServices(namespace string) []servingv1beta1.Service {
+func (c *Client) KnServices(namespace string) []servingv1alpha1.Service {
 	gvr := schema.GroupVersionResource{
 		Group:    "serving.knative.dev",
-		Version:  "v1beta1",
+		Version:  "v1alpha1",
 		Resource: "services",
 	}
-	like := servingv1beta1.Service{}
+	like := servingv1alpha1.Service{}
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -23,7 +23,7 @@ func (c *Client) KnServices(namespace string) []servingv1beta1.Service {
 		return nil
 	}
 
-	all := make([]servingv1beta1.Service, len(list.Items))
+	all := make([]servingv1alpha1.Service, len(list.Items))
 
 	for i, item := range list.Items {
 		obj := like.DeepCopy()

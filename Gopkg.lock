@@ -242,13 +242,15 @@
   revision = "d82505e6c5b4ce46562d6c242be0e706791f35bd"
 
 [[projects]]
-  digest = "1:ae23edfe84f4c1bd0abc8c4151997bbb1df8625e8284826f572df8dae5d11020"
+  digest = "1:7d83c765e49b6f833457e557c965b0eb4075670953c27ba83ed40f118bb44c4f"
   name = "github.com/knative/serving"
   packages = [
     "pkg/apis/autoscaling",
     "pkg/apis/config",
     "pkg/apis/networking",
+    "pkg/apis/networking/v1alpha1",
     "pkg/apis/serving",
+    "pkg/apis/serving/v1alpha1",
     "pkg/apis/serving/v1beta1",
   ]
   pruneopts = "UT"
@@ -760,7 +762,7 @@
     "github.com/knative/eventing/pkg/apis/eventing/v1alpha1",
     "github.com/knative/eventing/pkg/apis/messaging/v1alpha1",
     "github.com/knative/pkg/apis/duck/v1beta1",
-    "github.com/knative/serving/pkg/apis/serving/v1beta1",
+    "github.com/knative/serving/pkg/apis/serving/v1alpha1",
     "github.com/tmc/dot",
     "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions",
     "k8s.io/apimachinery/pkg/apis/meta/v1",

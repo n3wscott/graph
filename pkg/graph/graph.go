@@ -8,7 +8,7 @@ import (
 
 	eventingv1alpha1 "github.com/knative/eventing/pkg/apis/eventing/v1alpha1"
 	messagingv1alpha1 "github.com/knative/eventing/pkg/apis/messaging/v1alpha1"
-	servingv1beta1 "github.com/knative/serving/pkg/apis/serving/v1beta1"
+	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/tmc/dot"
 
 	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
@@ -209,7 +209,7 @@ func (g *Graph) AddTrigger(trigger eventingv1alpha1.Trigger) {
 	}
 }
 
-func (g *Graph) LoadKnService(service servingv1beta1.Service) {
+func (g *Graph) LoadKnService(service servingv1alpha1.Service) {
 	key := servingKey(service.Kind, service.Name)
 
 	var svc *dot.Node
@@ -237,7 +237,7 @@ func (g *Graph) LoadKnService(service servingv1beta1.Service) {
 	}
 }
 
-func (g *Graph) AddKnService(service servingv1beta1.Service) {
+func (g *Graph) AddKnService(service servingv1alpha1.Service) {
 	config := service.Spec.ConfigurationSpec
 	key := servingKey(service.Kind, service.Name)
 
@@ -341,7 +341,7 @@ func (g *Graph) AddSequence(seq messagingv1alpha1.Sequence) {
 }
 
 func setNodeShapeForKind(node *dot.Node, kind, apiVersion string) {
-	if apiVersion == "serving.knative.dev/v1beta1" {
+	if strings.HasPrefix(apiVersion, "serving.knative.dev") {
 		switch kind {
 		case "Service":
 			_ = node.Set("shape", "septagon")
@@ -470,5 +470,5 @@ func messagingKey(kind, name string) string {
 }
 
 func servingKey(kind, name string) string {
-	return key("serving.knative.dev", "v1beta1", kind, name)
+	return key("serving.knative.dev", "v1alpha1", kind, name)
 }
