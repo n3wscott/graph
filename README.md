@@ -19,9 +19,7 @@ installed.
 To install into the `default` namespace,
 
 ```shell
-curl -L https://github.com/n3wscott/graph/releases/download/v0.2.0/graph.yaml \
-  | sed "s/default/${NAMESPACE}/" \
-  | kubectl apply -f https://github.com/n3wscott/graph/releases/download/v0.2.0/graph.yaml
+kubectl apply -f https://github.com/n3wscott/graph/releases/download/v0.2.0/graph.yaml
 ```
 
 To install into a `test` namespace,
