@@ -8,16 +8,16 @@
 
 [[override]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.12.6"
+  version = "kubernetes-1.12.9"
 
 [[override]]
   name = "github.com/knative/pkg"
-  branch = "release-0.7"
+  branch = "release-0.8"
 
 [[override]]
   name = "github.com/knative/eventing"
-  version = "0.7.0"
+  version = "0.8.0"
 
 [[override]]
   name = "github.com/knative/serving"
-  version = "0.7.0"
+  version = "0.8.0"
