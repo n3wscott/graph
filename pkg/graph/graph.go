@@ -8,8 +8,8 @@ import (
 
 	eventingv1alpha1 "github.com/knative/eventing/pkg/apis/eventing/v1alpha1"
 	messagingv1alpha1 "github.com/knative/eventing/pkg/apis/messaging/v1alpha1"
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	"github.com/tmc/dot"
+	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
 )

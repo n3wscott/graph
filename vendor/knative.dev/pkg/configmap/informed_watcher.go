@@ -18,9 +18,9 @@ package configmap
 
 import (
 	"errors"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	informers "k8s.io/client-go/informers"
 	corev1informers "k8s.io/client-go/informers/core/v1"
@@ -51,9 +51,8 @@ func NewInformedWatcherFromFactory(sif informers.SharedInformerFactory, namespac
 func NewInformedWatcher(kc kubernetes.Interface, namespace string) *InformedWatcher {
 	return NewInformedWatcherFromFactory(informers.NewSharedInformerFactoryWithOptions(
 		kc,
-		// We noticed that we're getting updates all the time anyway, due to the
-		// watches being terminated and re-spawned.
-		0,
+		// This is the default resync period from controller-runtime.
+		10*time.Hour,
 		informers.WithNamespace(namespace),
 	), namespace)
 }
@@ -80,7 +79,7 @@ var _ Watcher = (*InformedWatcher)(nil)
 var _ DefaultingWatcher = (*InformedWatcher)(nil)
 
 // WatchWithDefault implements DefaultingWatcher.
-func (i *InformedWatcher) WatchWithDefault(cm corev1.ConfigMap, o ...Observer) {
+func (i *InformedWatcher) WatchWithDefault(cm corev1.ConfigMap, o Observer) {
 	i.defaults[cm.Name] = &cm
 
 	i.m.Lock()
@@ -95,7 +94,7 @@ func (i *InformedWatcher) WatchWithDefault(cm corev1.ConfigMap, o ...Observer) {
 		panic("cannot WatchWithDefault after the InformedWatcher has started")
 	}
 
-	i.Watch(cm.Name, o...)
+	i.Watch(cm.Name, o)
 }
 
 // Start implements Watcher.
@@ -141,14 +140,17 @@ func (i *InformedWatcher) registerCallbackAndStartInformer(stopCh <-chan struct{
 }
 
 func (i *InformedWatcher) checkObservedResourcesExist() error {
-	i.m.RLock()
-	defer i.m.RUnlock()
+	i.m.Lock()
+	defer i.m.Unlock()
 	// Check that all objects with Observers exist in our informers.
 	for k := range i.observers {
-		if _, err := i.informer.Lister().ConfigMaps(i.Namespace).Get(k); err != nil {
-			if _, ok := i.defaults[k]; ok && k8serrors.IsNotFound(err) {
-				// It is defaulted, so it is OK that it doesn't exist.
-				continue
+		_, err := i.informer.Lister().ConfigMaps(i.Namespace).Get(k)
+		if err != nil {
+			if k8serrors.IsNotFound(err) {
+				if _, ok := i.defaults[k]; ok {
+					// It is defaulted, so it is OK that it doesn't exist.
+					continue
+				}
 			}
 			return err
 		}
@@ -161,13 +163,8 @@ func (i *InformedWatcher) addConfigMapEvent(obj interface{}) {
 	i.OnChange(configMap)
 }
 
-func (i *InformedWatcher) updateConfigMapEvent(o, n interface{}) {
-	// Ignore updates that are idempotent. We are seeing those
-	// periodically.
-	if equality.Semantic.DeepEqual(o, n) {
-		return
-	}
-	configMap := n.(*corev1.ConfigMap)
+func (i *InformedWatcher) updateConfigMapEvent(old, new interface{}) {
+	configMap := new.(*corev1.ConfigMap)
 	i.OnChange(configMap)
 }
 

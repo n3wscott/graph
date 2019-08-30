@@ -3,10 +3,10 @@ package knative
 import (
 	"log"
 
-	servingv1alpha1 "github.com/knative/serving/pkg/apis/serving/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
 func (c *Client) KnServices(namespace string) []servingv1alpha1.Service {

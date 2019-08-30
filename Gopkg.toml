@@ -11,7 +11,7 @@
   version = "kubernetes-1.12.9"
 
 [[override]]
-  name = "github.com/knative/pkg"
+  name = "knative.dev/pkg"
   branch = "release-0.8"
 
 [[override]]
@@ -19,5 +19,5 @@
   version = "0.8.0"
 
 [[override]]
-  name = "github.com/knative/serving"
+  name = "knative.dev/serving"
   version = "0.8.0"

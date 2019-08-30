@@ -3,11 +3,11 @@ package knative
 import (
 	"log"
 
-	duckv1beta1 "github.com/knative/pkg/apis/duck/v1beta1"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 
 func (c *Client) SourceCRDs() []apiextensions.CustomResourceDefinition {

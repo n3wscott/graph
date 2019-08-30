@@ -48,12 +48,10 @@ type StaticWatcher struct {
 var _ Watcher = (*StaticWatcher)(nil)
 
 // Watch implements Watcher
-func (di *StaticWatcher) Watch(name string, o ...Observer) {
+func (di *StaticWatcher) Watch(name string, o Observer) {
 	cm, ok := di.cfgs[name]
 	if ok {
-		for _, observer := range o {
-			observer(cm)
-		}
+		o(cm)
 	} else {
 		panic(fmt.Sprintf("Tried to watch unknown config with name %q", name))
 	}
