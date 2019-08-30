@@ -105,6 +105,7 @@ func (g *Graph) AddInMemoryChannel(channel messagingv1alpha1.InMemoryChannel) {
 func (g *Graph) AddSubscription(subscription eventingv1alpha1.Subscription) {
 	sk := subscriptionKey(subscription.Name)
 	sn := dot.NewNode("Subscription " + subscription.Name)
+	setNodeColorForStatus(sn, subscription.Status.Status)
 
 	ck := gvkKey(subscription.Spec.Channel.GroupVersionKind(), subscription.Spec.Channel.Name)
 	if cg, ok := g.subgraphs[ck]; !ok {
@@ -117,6 +118,7 @@ func (g *Graph) AddSubscription(subscription eventingv1alpha1.Subscription) {
 	if sub := g.getOrCreateSubscriber(subscription.Spec.Subscriber); sub != nil {
 		e := dot.NewEdge(sn, sub)
 		_ = e.Set("dir", "both")
+		setEdgeColorForStatus(e, subscription.Status.Status)
 		g.AddEdge(e)
 	}
 
@@ -134,6 +136,7 @@ func (g *Graph) AddBroker(broker eventingv1alpha1.Broker) {
 	bn := dot.NewNode("Broker " + dns)
 	_ = bn.Set("shape", "oval")
 	_ = bn.Set("label", "Ingress")
+	setNodeColorForStatus(bn, broker.Status.Status)
 
 	g.nodes[key] = bn
 	g.dnsToKey[dns] = key
@@ -174,6 +177,7 @@ func (g *Graph) AddSource(source duckv1alpha1.SourceType) {
 		}
 
 		e := dot.NewEdge(sn, bn)
+		setEdgeColorForStatus(e, source.Status.Status)
 		if sg, ok := g.subgraphs[bk]; ok {
 			// This is not working.
 			_ = e.Set("lhead", sg.Name())
@@ -213,6 +217,7 @@ func (g *Graph) AddTrigger(trigger eventingv1alpha1.Trigger) {
 	if sub := g.getOrCreateSubscriber(trigger.Spec.Subscriber); sub != nil {
 		e := dot.NewEdge(tn, sub)
 		_ = e.Set("dir", "both")
+		setEdgeColorForStatus(e, trigger.Status.Status)
 		fmt.Println("sub", sub, e)
 		g.AddEdge(e)
 	}
@@ -280,6 +285,7 @@ func (g *Graph) AddKnService(service servingv1alpha1.Service) {
 			// Assume full dns name.
 			target := g.getOrCreateSink(env.Value)
 			e := dot.NewEdge(svc, target)
+			setEdgeColorForStatus(e, service.Status.Status)
 			g.AddEdge(e)
 		}
 	}
@@ -320,10 +326,12 @@ func (g *Graph) AddSequence(seq messagingv1alpha1.Sequence) {
 		if sub := g.getOrCreateSubscriber(&step); sub != nil {
 			e := dot.NewEdge(stepn, sub)
 			_ = e.Set("dir", "both")
+			setEdgeColorForStatus(e, seq.Status.Status)
 			g.AddEdge(e)
 		}
 
 		e := dot.NewEdge(previousNode, stepn)
+		setEdgeColorForStatus(e, seq.Status.Status)
 		g.AddEdge(e)
 		previousNode = stepn
 	}
@@ -337,11 +345,13 @@ func (g *Graph) AddSequence(seq messagingv1alpha1.Sequence) {
 
 		// TODO where this points.
 		e := dot.NewEdge(previousNode, replyn)
+		setEdgeColorForStatus(e, seq.Status.Status)
 		g.AddEdge(e)
 
 		rk := gvkKey(seq.Spec.Reply.GroupVersionKind(), seq.Spec.Reply.Name)
 		if rn, ok := g.nodes[rk]; ok {
 			e := dot.NewEdge(replyn, rn)
+			setEdgeColorForStatus(e, seq.Status.Status)
 			g.AddEdge(e)
 		}
 	}
@@ -360,19 +370,33 @@ func setNodeShapeForKind(node *dot.Node, kind, apiVersion string) {
 	}
 }
 
-func setNodeColorForStatus(node *dot.Node, status duckv1beta1.Status) {
+func getColorMapForStatus(status duckv1beta1.Status) map[string]string {
 	cond := status.GetCondition(apis.ConditionReady)
+	attrs := make(map[string]string)
+	if cond.IsTrue() {
+		attrs["color"] = "black"
+		attrs["tooltip"] = fmt.Sprintf("Ready as of %s", cond.LastTransitionTime.Inner.String())
+	} else if cond.IsUnknown() {
+		attrs["color"] = "darkorange2"
+		attrs["tooltip"] = fmt.Sprintf("[%s] %s: %s", cond.Status, cond.Reason, cond.Message)
+	} else if cond.IsFalse() {
+		attrs["color"] = "deeppink"
+		attrs["tooltip"] = fmt.Sprintf("[%s] %s: %s", cond.Status, cond.Reason, cond.Message)
+	}
+	return attrs
+}
+
+func setNodeColorForStatus(node *dot.Node, status duckv1beta1.Status) {
 	_ = node.Set("fillcolor", "white")
 	_ = node.Set("style", "filled")
-	if cond.IsTrue() {
-		_ = node.Set("color", "black")
-		_ = node.Set("tooltip", fmt.Sprintf("Ready as of %s", cond.LastTransitionTime.Inner.String()))
-	} else if cond.IsUnknown() {
-		_ = node.Set("color", "goldenrod")
-		_ = node.Set("tooltip", fmt.Sprintf("[%s] %s: %s", cond.Status, cond.Reason, cond.Message))
-	} else if cond.IsFalse() {
-		_ = node.Set("color", "deeppink")
-		_ = node.Set("tooltip", fmt.Sprintf("[%s] %s: %s", cond.Status, cond.Reason, cond.Message))
+	for name, value := range getColorMapForStatus(status) {
+		_ = node.Set(name, value)
+	}
+}
+
+func setEdgeColorForStatus(edge *dot.Edge, status duckv1beta1.Status) {
+	for name, value := range getColorMapForStatus(status) {
+		_ = edge.Set(name, value)
 	}
 }
 
