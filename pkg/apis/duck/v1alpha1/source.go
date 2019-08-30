@@ -16,6 +16,6 @@ type SourceType struct {
 }
 
 type SourceStatus struct {
-	duckv1beta1.Status `json:"inline,"`
+	duckv1beta1.Status `json:",inline,"`
 	SinkURI            *string `json:"sinkUri,omitempty"`
 }

@@ -12,4 +12,4 @@ ${CODEGEN_PKG}/generate-groups.sh "deepcopy" \
   "duck:v1alpha1" 
 
 # Make sure our dependencies are up-to-date
-${REPO_ROOT_DIR}/hack/update-deps.sh
+./hack/update-deps.sh

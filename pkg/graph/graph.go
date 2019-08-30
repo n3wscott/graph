@@ -28,9 +28,11 @@ type Graph struct {
 
 func New(ns string) *Graph {
 	g := dot.NewGraph("G")
+	_ = g.Set("tooltip", "Graph View")
 	_ = g.Set("shape", "box")
 	_ = g.Set("label", "Triggers in "+ns)
 	_ = g.Set("rankdir", "LR")
+
 	//_ = g.Set("compound", "true")
 
 	graph := &Graph{
@@ -360,8 +362,17 @@ func setNodeShapeForKind(node *dot.Node, kind, apiVersion string) {
 
 func setNodeColorForStatus(node *dot.Node, status duckv1beta1.Status) {
 	cond := status.GetCondition(apis.ConditionReady)
+	_ = node.Set("fillcolor", "white")
+	_ = node.Set("style", "filled")
 	if cond.IsTrue() {
-		_ = node.Set("color", "darkgreen")
+		_ = node.Set("color", "black")
+		_ = node.Set("tooltip", fmt.Sprintf("Ready as of %s", cond.LastTransitionTime.Inner.String()))
+	} else if cond.IsUnknown() {
+		_ = node.Set("color", "goldenrod")
+		_ = node.Set("tooltip", fmt.Sprintf("[%s] %s: %s", cond.Status, cond.Reason, cond.Message))
+	} else if cond.IsFalse() {
+		_ = node.Set("color", "deeppink")
+		_ = node.Set("tooltip", fmt.Sprintf("[%s] %s: %s", cond.Status, cond.Reason, cond.Message))
 	}
 }
 
