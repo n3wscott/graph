@@ -14,6 +14,7 @@ import (
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
+	"github.com/n3wscott/graph/pkg/knative"
 )
 
 type Graph struct {
@@ -62,6 +63,7 @@ func (g *Graph) AddChannel(channel eventingv1alpha1.Channel) {
 	dns := strings.TrimSuffix((&uri).String(), "/")
 	cn := dot.NewNode("Channel " + channel.Name)
 
+	_ = cn.Set("URL", knative.ToYamlViewURL(channel.Name, channel.Kind, channel.APIVersion))
 	setNodeShapeForKind(cn, channel.Kind, channel.APIVersion)
 	setNodeColorForStatus(cn, channel.Status.Status)
 
@@ -86,6 +88,7 @@ func (g *Graph) AddInMemoryChannel(channel messagingv1alpha1.InMemoryChannel) {
 	dns := strings.TrimSuffix((&uri).String(), "/")
 	cn := dot.NewNode("InMemoryChannel " + channel.Name)
 
+	_ = cn.Set("URL", knative.ToYamlViewURL(channel.Name, channel.Kind, channel.APIVersion))
 	setNodeShapeForKind(cn, channel.Kind, channel.APIVersion)
 	setNodeColorForStatus(cn, channel.Status.Status)
 
@@ -105,6 +108,7 @@ func (g *Graph) AddInMemoryChannel(channel messagingv1alpha1.InMemoryChannel) {
 func (g *Graph) AddSubscription(subscription eventingv1alpha1.Subscription) {
 	sk := subscriptionKey(subscription.Name)
 	sn := dot.NewNode("Subscription " + subscription.Name)
+	_ = sn.Set("URL", knative.ToYamlViewURL(subscription.Name, subscription.Kind, subscription.APIVersion))
 	setNodeColorForStatus(sn, subscription.Status.Status)
 
 	ck := gvkKey(subscription.Spec.Channel.GroupVersionKind(), subscription.Spec.Channel.Name)
@@ -136,6 +140,7 @@ func (g *Graph) AddBroker(broker eventingv1alpha1.Broker) {
 	bn := dot.NewNode("Broker " + dns)
 	_ = bn.Set("shape", "oval")
 	_ = bn.Set("label", "Ingress")
+	_ = bn.Set("URL", knative.ToYamlViewURL(broker.Name, broker.Kind, broker.APIVersion))
 	setNodeColorForStatus(bn, broker.Status.Status)
 
 	g.nodes[key] = bn
@@ -152,7 +157,9 @@ func (g *Graph) AddSource(source duckv1alpha1.SourceType) {
 	key := gvkKey(source.GroupVersionKind(), source.Name)
 	sn := dot.NewNode(fmt.Sprintf("Source %s\nKind: %s\n%s", source.Name, source.Kind, source.APIVersion))
 	_ = sn.Set("shape", "box")
+
 	setNodeColorForStatus(sn, source.Status.Status)
+	_ = sn.Set("URL", knative.ToYamlViewURL(source.Name, source.Kind, source.APIVersion))
 	g.AddNode(sn)
 	g.nodes[key] = sn
 
@@ -198,6 +205,8 @@ func (g *Graph) AddTrigger(trigger eventingv1alpha1.Trigger) {
 
 	tn := dot.NewNode("Trigger " + trigger.Name)
 	_ = tn.Set("shape", "box")
+	_ = tn.Set("URL", knative.ToYamlViewURL(trigger.Name, trigger.Kind, trigger.APIVersion))
+	setNodeColorForStatus(tn, trigger.Status.Status)
 
 	if sg, ok := g.subgraphs[bk]; ok {
 		sg.AddNode(tn)
@@ -236,6 +245,8 @@ func (g *Graph) LoadKnService(service servingv1alpha1.Service) {
 			service.APIVersion,
 		)
 		svc = dot.NewNode(label)
+
+		_ = svc.Set("URL", knative.ToYamlViewURL(service.Name, service.Kind, service.APIVersion))
 		setNodeShapeForKind(svc, service.Kind, service.APIVersion)
 		setNodeColorForStatus(svc, service.Status.Status)
 
@@ -266,6 +277,7 @@ func (g *Graph) AddKnService(service servingv1alpha1.Service) {
 			service.APIVersion,
 		)
 		svc = dot.NewNode(label)
+		_ = svc.Set("URL", knative.ToYamlViewURL(service.Name, service.Kind, service.APIVersion))
 		setNodeShapeForKind(svc, service.Kind, service.APIVersion)
 		setNodeColorForStatus(svc, service.Status.Status)
 
@@ -305,7 +317,8 @@ func (g *Graph) AddSequence(seq messagingv1alpha1.Sequence) {
 	g.dnsToKey[dns] = key
 	sn := dot.NewNode("Sequence " + dns)
 	_ = sn.Set("label", "Start")
-	//	_ = sn.Set("rank", "min")
+	_ = sn.Set("URL", knative.ToYamlViewURL(seq.Name, seq.Kind, seq.APIVersion))
+	setNodeColorForStatus(sn, seq.Status.Status)
 
 	g.nodes[key] = sn
 	sg.AddNode(sn)

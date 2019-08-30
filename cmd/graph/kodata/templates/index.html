@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="/static/css/material.blue-indigo.min.css" />
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/atom-one-light.css">
 </head>
 <body>
 <div class="graph-layout mdl-layout mdl-layout--fixed-header mdl-js-layout mdl-color--grey-100">
@@ -36,5 +37,13 @@
     </footer>
 </div>
 <script defer src="/static/js/material.min.js"></script>
+<script defer src="/static/js/highlight.pack.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+    document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+    });
+});
+</script>
 </body>
 </html>

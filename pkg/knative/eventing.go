@@ -11,7 +11,7 @@ import (
 	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
 )
 
-func (c *Client) Sources(namespace string) []duckv1alpha1.SourceType {
+func (c *Client) Sources(namespace string, yv *[]YamlView) []duckv1alpha1.SourceType {
 	gvrs := crdsToGVR(c.SourceCRDs())
 	all := make([]duckv1alpha1.SourceType, 0)
 
@@ -31,12 +31,15 @@ func (c *Client) Sources(namespace string) []duckv1alpha1.SourceType {
 			obj.ResourceVersion = gvr.Version
 			obj.APIVersion = gvr.GroupVersion().String()
 			all = append(all, *obj)
+
+			// Yaml View
+			AddToYamlView(item, yv)
 		}
 	}
 	return all
 }
 
-func (c *Client) Triggers(namespace string) []eventingv1alpha1.Trigger {
+func (c *Client) Triggers(namespace string, yv *[]YamlView) []eventingv1alpha1.Trigger {
 	gvr := schema.GroupVersionResource{
 		Group:    "eventing.knative.dev",
 		Version:  "v1alpha1",
@@ -60,11 +63,14 @@ func (c *Client) Triggers(namespace string) []eventingv1alpha1.Trigger {
 		obj.ResourceVersion = gvr.Version
 		obj.APIVersion = gvr.GroupVersion().String()
 		all[i] = *obj
+
+		// Yaml View
+		AddToYamlView(item, yv)
 	}
 	return all
 }
 
-func (c *Client) Brokers(namespace string) []eventingv1alpha1.Broker {
+func (c *Client) Brokers(namespace string, yv *[]YamlView) []eventingv1alpha1.Broker {
 	gvr := schema.GroupVersionResource{
 		Group:    "eventing.knative.dev",
 		Version:  "v1alpha1",
@@ -88,11 +94,14 @@ func (c *Client) Brokers(namespace string) []eventingv1alpha1.Broker {
 		obj.ResourceVersion = gvr.Version
 		obj.APIVersion = gvr.GroupVersion().String()
 		all[i] = *obj
+
+		// Yaml View
+		AddToYamlView(item, yv)
 	}
 	return all
 }
 
-func (c *Client) Channels(namespace string) []eventingv1alpha1.Channel {
+func (c *Client) Channels(namespace string, yv *[]YamlView) []eventingv1alpha1.Channel {
 	gvr := schema.GroupVersionResource{
 		Group:    "eventing.knative.dev",
 		Version:  "v1alpha1",
@@ -116,11 +125,14 @@ func (c *Client) Channels(namespace string) []eventingv1alpha1.Channel {
 		obj.ResourceVersion = gvr.Version
 		obj.APIVersion = gvr.GroupVersion().String()
 		all[i] = *obj
+
+		// Yaml View
+		AddToYamlView(item, yv)
 	}
 	return all
 }
 
-func (c *Client) Subscriptions(namespace string) []eventingv1alpha1.Subscription {
+func (c *Client) Subscriptions(namespace string, yv *[]YamlView) []eventingv1alpha1.Subscription {
 	gvr := schema.GroupVersionResource{
 		Group:    "eventing.knative.dev",
 		Version:  "v1alpha1",
@@ -144,11 +156,14 @@ func (c *Client) Subscriptions(namespace string) []eventingv1alpha1.Subscription
 		obj.ResourceVersion = gvr.Version
 		obj.APIVersion = gvr.GroupVersion().String()
 		all[i] = *obj
+
+		// Yaml View
+		AddToYamlView(item, yv)
 	}
 	return all
 }
 
-func (c *Client) EventTypes(namespace string) []eventingv1alpha1.EventType {
+func (c *Client) EventTypes(namespace string, yv *[]YamlView) []eventingv1alpha1.EventType {
 	gvr := schema.GroupVersionResource{
 		Group:    "eventing.knative.dev",
 		Version:  "v1alpha1",
@@ -172,6 +187,9 @@ func (c *Client) EventTypes(namespace string) []eventingv1alpha1.EventType {
 		obj.ResourceVersion = gvr.Version
 		obj.APIVersion = gvr.GroupVersion().String()
 		all[i] = *obj
+
+		// Yaml View
+		AddToYamlView(item, yv)
 	}
 	return all
 }

@@ -9,7 +9,7 @@ import (
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 )
 
-func (c *Client) KnServices(namespace string) []servingv1alpha1.Service {
+func (c *Client) KnServices(namespace string, yv *[]YamlView) []servingv1alpha1.Service {
 	gvr := schema.GroupVersionResource{
 		Group:    "serving.knative.dev",
 		Version:  "v1alpha1",
@@ -33,6 +33,9 @@ func (c *Client) KnServices(namespace string) []servingv1alpha1.Service {
 		obj.ResourceVersion = gvr.Version
 		obj.APIVersion = gvr.GroupVersion().String()
 		all[i] = *obj
+
+		// Yaml View
+		AddToYamlView(item, yv)
 	}
 	return all
 }

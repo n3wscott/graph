@@ -10,7 +10,7 @@ import (
 	messagingv1alpha1 "github.com/knative/eventing/pkg/apis/messaging/v1alpha1"
 )
 
-func (c *Client) Sequences(namespace string) []messagingv1alpha1.Sequence {
+func (c *Client) Sequences(namespace string, yv *[]YamlView) []messagingv1alpha1.Sequence {
 	gvr := schema.GroupVersionResource{
 		Group:    "messaging.knative.dev",
 		Version:  "v1alpha1",
@@ -34,11 +34,14 @@ func (c *Client) Sequences(namespace string) []messagingv1alpha1.Sequence {
 		obj.ResourceVersion = gvr.Version
 		obj.APIVersion = gvr.GroupVersion().String()
 		all[i] = *obj
+
+		// Yaml View
+		AddToYamlView(item, yv)
 	}
 	return all
 }
 
-func (c *Client) InMemoryChannels(namespace string) []messagingv1alpha1.InMemoryChannel {
+func (c *Client) InMemoryChannels(namespace string, yv *[]YamlView) []messagingv1alpha1.InMemoryChannel {
 	gvr := schema.GroupVersionResource{
 		Group:    "messaging.knative.dev",
 		Version:  "v1alpha1",
@@ -62,6 +65,9 @@ func (c *Client) InMemoryChannels(namespace string) []messagingv1alpha1.InMemory
 		obj.ResourceVersion = gvr.Version
 		obj.APIVersion = gvr.GroupVersion().String()
 		all[i] = *obj
+
+		// Yaml View
+		AddToYamlView(item, yv)
 	}
 	return all
 }

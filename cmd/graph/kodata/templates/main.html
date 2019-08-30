@@ -13,3 +13,73 @@
 {{ .Dot }}
     </pre>
 </div>
+
+<button id="show-dot-dialog" type="button" class="mdl-button">graph.dot</button>
+<dialog class="mdl-dialog yaml-dialog" id="dot-dialog">
+  <h4 class="mdl-dialog__title">GraphViz .dot file</h4>
+  <div class="mdl-dialog__content">
+        <pre><code class="yaml">
+{{ .Dot }}
+        </code></pre>
+  </div>
+  <div class="mdl-dialog__actions">
+    <button type="button" class="mdl-button close">Close</button>
+  </div>
+</dialog>
+
+<script>
+  var dialog = document.getElementById('dot-dialog');
+  var showDialogButton = document.getElementById('show-dot-dialog');
+  if (! dialog.showModal) {
+    dialogPolyfill.registerDialog(dialog);
+  }
+  showDialogButton.addEventListener('click', function() {
+    dialog.showModal();
+  });
+  dialog.querySelector('.close').addEventListener('click', function() {
+    dialog.close();
+  });
+</script>
+
+
+{{ range .yv }}
+<dialog class="mdl-dialog yaml-dialog" id="{{ .ID }}">
+  <h4 class="mdl-dialog__title">{{ .Title }}</h4>
+  <div class="mdl-dialog__content">
+    <pre><code class="yaml">
+{{ .Yaml }}
+    </code></pre>
+  </div>
+  <div class="mdl-dialog__actions">
+    <button type="button" class="mdl-button close">Close</button>
+  </div>
+</dialog>
+
+<script>
+  (function () {
+    var dialog = document.getElementById('{{ .ID }}');
+    if (!dialog.showModal) {
+      dialogPolyfill.registerDialog(dialog);
+    }
+    dialog.querySelector('.close').addEventListener('click', function () {
+      dialog.close();
+      // remove fragment as much as it can go without adding an entry in browser history:
+      window.location.replace("#");
+
+      // slice off the remaining '#' in HTML5:
+      if (typeof window.history.replaceState == 'function') {
+        history.replaceState({}, '', window.location.href.slice(0, -1));
+      }
+    });
+  })();
+</script>
+{{end}}
+
+<script>
+  window.onhashchange = (event) => {
+    let dialog = document.getElementById(location.hash.slice(1));
+    if (dialog) {
+      dialog.showModal();
+    }
+  };
+</script>

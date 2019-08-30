@@ -10,6 +10,10 @@
     flex-shrink: 0;
 }
 
+.yaml-dialog {
+    width: 90%;
+}
+
 .graph-header .mdl-layout__header-row {
     padding-left: 40px;
 }

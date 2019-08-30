@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/n3wscott/graph/pkg/graph"
+	"github.com/n3wscott/graph/pkg/knative"
 )
 
 var once sync.Once
@@ -57,6 +58,7 @@ func (c *Controller) RootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var dotGraph string
+	var yv []knative.YamlView
 
 	switch focus {
 	case "sub", "subs", "subscription", "subscriptions":
@@ -64,7 +66,7 @@ func (c *Controller) RootHandler(w http.ResponseWriter, r *http.Request) {
 	case "broker", "trigger", "triggers":
 		fallthrough
 	default:
-		dotGraph = graph.ForTriggers(c.client, c.namespace)
+		dotGraph, yv = graph.ForTriggers(c.client, c.namespace)
 	}
 
 	file, err := dotToImage(format, []byte(dotGraph))
@@ -86,6 +88,7 @@ func (c *Controller) RootHandler(w http.ResponseWriter, r *http.Request) {
 			"svg":    true,
 			"Image":  template.HTML(string(img)),
 			"Format": format,
+			"yv":     yv,
 		}
 	} else {
 		data = map[string]interface{}{
