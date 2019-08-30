@@ -9,6 +9,7 @@ import (
 	eventingv1alpha1 "github.com/knative/eventing/pkg/apis/eventing/v1alpha1"
 	messagingv1alpha1 "github.com/knative/eventing/pkg/apis/messaging/v1alpha1"
 	"github.com/tmc/dot"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 	servingv1alpha1 "knative.dev/serving/pkg/apis/serving/v1alpha1"
 
 	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
@@ -193,12 +194,12 @@ func (g *Graph) AddTrigger(trigger eventingv1alpha1.Trigger) {
 	}
 	g.nodes[triggerKey(trigger.Name)] = tn
 
-	if trigger.Spec.Filter != nil && trigger.Spec.Filter.SourceAndType != nil {
-		label := fmt.Sprintf("Source:%s\nType:%s",
-			trigger.Spec.Filter.SourceAndType.Source,
-			trigger.Spec.Filter.SourceAndType.Type,
-		)
-		_ = tn.Set("label", fmt.Sprintf("%s\n%s", tn.Name(), label))
+	if trigger.Spec.Filter != nil && trigger.Spec.Filter.Attributes != nil {
+		filter := ""
+		for k, v := range *trigger.Spec.Filter.Attributes {
+			filter = fmt.Sprintf("%s\n%s=%s", filter, k, v)
+		}
+		_ = tn.Set("label", fmt.Sprintf("%s%s", tn.Name(), filter))
 	}
 
 	if sub := g.getOrCreateSubscriber(trigger.Spec.Subscriber); sub != nil {
@@ -347,6 +348,10 @@ func setNodeShapeForKind(node *dot.Node, kind, apiVersion string) {
 			_ = node.Set("shape", "septagon")
 		}
 	}
+}
+
+func setNodeColorForStatus(node *dot.Node, status duckv1beta1.Status) {
+
 }
 
 func (g *Graph) getOrCreateSink(uri string) *dot.Node {
