@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"knative.dev/pkg/apis"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -60,6 +61,7 @@ func (g *Graph) AddChannel(channel eventingv1alpha1.Channel) {
 	cn := dot.NewNode("Channel " + channel.Name)
 
 	setNodeShapeForKind(cn, channel.Kind, channel.APIVersion)
+	setNodeColorForStatus(cn, channel.Status.Status)
 
 	_ = cn.Set("shape", "oval") // TODO move to setNodeShapeForKind
 	_ = cn.Set("label", "Ingress")
@@ -74,6 +76,8 @@ func (g *Graph) AddChannel(channel eventingv1alpha1.Channel) {
 	g.AddSubgraph(cg)
 }
 
+// TODO: add channel ducktype.
+
 func (g *Graph) AddInMemoryChannel(channel messagingv1alpha1.InMemoryChannel) {
 	ck := inMemoryChannelKey(channel.Name)
 	uri := channel.Status.Address.GetURL()
@@ -81,6 +85,7 @@ func (g *Graph) AddInMemoryChannel(channel messagingv1alpha1.InMemoryChannel) {
 	cn := dot.NewNode("InMemoryChannel " + channel.Name)
 
 	setNodeShapeForKind(cn, channel.Kind, channel.APIVersion)
+	setNodeColorForStatus(cn, channel.Status.Status)
 
 	_ = cn.Set("shape", "oval") // TODO move to setNodeShapeForKind
 	_ = cn.Set("label", "Ingress")
@@ -142,6 +147,7 @@ func (g *Graph) AddSource(source duckv1alpha1.SourceType) {
 	key := gvkKey(source.GroupVersionKind(), source.Name)
 	sn := dot.NewNode(fmt.Sprintf("Source %s\nKind: %s\n%s", source.Name, source.Kind, source.APIVersion))
 	_ = sn.Set("shape", "box")
+	setNodeColorForStatus(sn, source.Status.Status)
 	g.AddNode(sn)
 	g.nodes[key] = sn
 
@@ -224,6 +230,7 @@ func (g *Graph) LoadKnService(service servingv1alpha1.Service) {
 		)
 		svc = dot.NewNode(label)
 		setNodeShapeForKind(svc, service.Kind, service.APIVersion)
+		setNodeColorForStatus(svc, service.Status.Status)
 
 		//_ = svc.Set("shape", "septagon")
 
@@ -253,6 +260,7 @@ func (g *Graph) AddKnService(service servingv1alpha1.Service) {
 		)
 		svc = dot.NewNode(label)
 		setNodeShapeForKind(svc, service.Kind, service.APIVersion)
+		setNodeColorForStatus(svc, service.Status.Status)
 
 		//_ = svc.Set("shape", "septagon")
 
@@ -260,7 +268,7 @@ func (g *Graph) AddKnService(service servingv1alpha1.Service) {
 		g.AddNode(svc)
 	}
 
-	fmt.Println(service, "kn svc:", svc)
+	//	fmt.Println(service, "kn svc:", svc)
 
 	for _, env := range config.Template.Spec.Containers[0].Env {
 		switch env.Name {
@@ -351,7 +359,10 @@ func setNodeShapeForKind(node *dot.Node, kind, apiVersion string) {
 }
 
 func setNodeColorForStatus(node *dot.Node, status duckv1beta1.Status) {
-
+	cond := status.GetCondition(apis.ConditionReady)
+	if cond.IsTrue() {
+		_ = node.Set("color", "darkgreen")
+	}
 }
 
 func (g *Graph) getOrCreateSink(uri string) *dot.Node {
