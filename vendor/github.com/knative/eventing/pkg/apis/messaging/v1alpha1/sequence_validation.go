@@ -20,8 +20,7 @@ import (
 	"context"
 
 	eventingv1alpha1 "github.com/knative/eventing/pkg/apis/eventing/v1alpha1"
-	"github.com/knative/pkg/apis"
-	"k8s.io/apimachinery/pkg/api/equality"
+	"knative.dev/pkg/apis"
 )
 
 func (p *Sequence) Validate(ctx context.Context) *apis.FieldError {
@@ -41,7 +40,7 @@ func (ps *SequenceSpec) Validate(ctx context.Context) *apis.FieldError {
 		}
 	}
 
-	if equality.Semantic.DeepEqual(ps.ChannelTemplate, ChannelTemplateSpec{}) {
+	if ps.ChannelTemplate == nil {
 		errs = errs.Also(apis.ErrMissingField("channelTemplate"))
 		return errs
 	}
