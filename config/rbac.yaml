@@ -13,6 +13,7 @@ rules:
   # Sources read
   - apiGroups:
       - sources.eventing.knative.dev
+      - sources.knative.dev
     resources: ['*']
     verbs: &readOnly
       - get
