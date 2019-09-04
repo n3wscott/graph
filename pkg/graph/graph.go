@@ -385,10 +385,13 @@ func setNodeShapeForKind(node *dot.Node, kind, apiVersion string) {
 
 func getColorMapForStatus(status duckv1beta1.Status) map[string]string {
 	cond := status.GetCondition(apis.ConditionReady)
+	if cond == nil {
+		cond = status.GetCondition(apis.ConditionSucceeded)
+	}
 	attrs := make(map[string]string)
 	if cond == nil {
-		attrs["color"] = "deeppurple"
-		attrs["tootlip"] = "missing status"
+		attrs["color"] = "purple"
+		attrs["tootlip"] = "missing status field"
 	} else if cond.IsTrue() {
 		attrs["color"] = "black"
 		attrs["tooltip"] = fmt.Sprintf("Ready as of %s", cond.LastTransitionTime.Inner.String())
