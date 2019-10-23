@@ -3,6 +3,8 @@
 Visualize your [Knative Eventing](http://github.com/knative/eventing)
 connections.
 
+<img src="./image/preview.png">
+
 ## Usage
 
 Visit the root of the graph service in a web browser. This will show you the
