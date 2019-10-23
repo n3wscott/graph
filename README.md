@@ -14,36 +14,21 @@ installed.
 
 # Deploying
 
-## From Release v0.3.0 - v1alpha Knative Serving
+## From Release v0.4.0 ~ Knative 0.9.0
+
+> Note: Graph uses Serving v1. To change this, you can edit the release yaml.
 
 To install into the `default` namespace,
 
 ```shell
-kubectl apply -f https://github.com/n3wscott/graph/releases/download/v0.3.0/release-alpha.yaml
+kubectl apply -f https://github.com/n3wscott/graph/releases/download/v0.4.0/release.yaml
 ```
 
 To install into a `test` namespace,
 
 ```shell
 export NAMESPACE=test # <-- update test to your target namespace.
-curl -L https://github.com/n3wscott/graph/releases/download/v0.3.0/release-alpha.yaml \
-  | sed "s/default/${NAMESPACE}/" \
-  | kubectl apply -n $NAMESPACE --filename -
-```
-
-## From Release v0.3.0 - v1beta Knative Serving
-
-To install into the `default` namespace,
-
-```shell
-kubectl apply -f https://github.com/n3wscott/graph/releases/download/v0.3.0/release-beta.yaml
-```
-
-To install into a `test` namespace,
-
-```shell
-export NAMESPACE=test # <-- update test to your target namespace.
-curl -L https://github.com/n3wscott/graph/releases/download/v0.3.0/release-beta.yaml \
+curl -L https://github.com/n3wscott/graph/releases/download/v0.4.0/release.yaml \
   | sed "s/default/${NAMESPACE}/" \
   | kubectl apply -n $NAMESPACE --filename -
 ```
