@@ -78,9 +78,9 @@ func ForSubscriptions(client dynamic.Interface, ns string) string {
 		g.AddKnService(service)
 	}
 
-	for _, channel := range c.Channels(ns, &yv) {
-		g.AddChannel(channel)
-	}
+	//for _, channel := range c.Channels(ns, &yv) {
+	//	g.AddChannel(channel)
+	//}
 
 	for _, channel := range c.InMemoryChannels(ns, &yv) {
 		g.AddInMemoryChannel(channel)

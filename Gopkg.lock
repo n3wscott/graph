@@ -312,17 +312,6 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:b0d81beeeed6e18f344e7a1aca68eaaf44cca43f36c1589a6ba2bff14ca216d1"
-  name = "github.com/knative/eventing"
-  packages = [
-    "pkg/apis/eventing/v1alpha1",
-    "pkg/apis/messaging/v1alpha1",
-  ]
-  pruneopts = "UT"
-  revision = "a1a098150e5b624573c391563cd13f1703dcc10d"
-  version = "v0.9.0"
-
-[[projects]]
   digest = "1:3804a3a02964db8e6db3e5e7960ac1c1a9b12835642dd4f4ac4e56c749ec73eb"
   name = "github.com/markbates/inflect"
   packages = ["."]
@@ -1040,12 +1029,13 @@
   version = "v0.4.0"
 
 [[projects]]
-  digest = "1:d75d02e0f0fc18f7d62ce749be2046093cd51e7b07e2b397f807762bfe3ca86e"
+  digest = "1:d0ea2f3a2e8db4a42040acd4f2aba6d552fcc4d39867ce9a24083e7a128fe634"
   name = "knative.dev/eventing"
   packages = [
     "pkg/apis/duck",
     "pkg/apis/duck/v1alpha1",
     "pkg/apis/eventing",
+    "pkg/apis/eventing/v1alpha1",
     "pkg/apis/messaging",
     "pkg/apis/messaging/v1alpha1",
   ]
@@ -1103,8 +1093,6 @@
     "github.com/cloudevents/sdk-go",
     "github.com/cloudevents/sdk-go/pkg/cloudevents",
     "github.com/kelseyhightower/envconfig",
-    "github.com/knative/eventing/pkg/apis/eventing/v1alpha1",
-    "github.com/knative/eventing/pkg/apis/messaging/v1alpha1",
     "github.com/tmc/dot",
     "gopkg.in/yaml.v2",
     "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions",
@@ -1118,6 +1106,8 @@
     "k8s.io/client-go/tools/clientcmd",
     "k8s.io/code-generator/cmd/deepcopy-gen",
     "k8s.io/code-generator/cmd/defaulter-gen",
+    "knative.dev/eventing/pkg/apis/eventing/v1alpha1",
+    "knative.dev/eventing/pkg/apis/messaging/v1alpha1",
     "knative.dev/pkg/apis",
     "knative.dev/pkg/apis/duck/v1",
     "knative.dev/pkg/apis/duck/v1beta1",
