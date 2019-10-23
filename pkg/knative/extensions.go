@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 func (c *Client) SourceCRDs() []apiextensions.CustomResourceDefinition {
@@ -59,8 +59,8 @@ func crdsToGVR(crds []apiextensions.CustomResourceDefinition) []schema.GroupVers
 	return gvrs
 }
 
-func (c *Client) Addressable(namespace string, gvr schema.GroupVersionResource) []duckv1beta1.AddressableType {
-	like := duckv1beta1.AddressableType{}
+func (c *Client) Addressable(namespace string, gvr schema.GroupVersionResource) []duckv1.AddressableType {
+	like := duckv1.AddressableType{}
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -68,7 +68,7 @@ func (c *Client) Addressable(namespace string, gvr schema.GroupVersionResource) 
 		return nil
 	}
 
-	all := make([]duckv1beta1.AddressableType, len(list.Items))
+	all := make([]duckv1.AddressableType, len(list.Items))
 
 	for i, item := range list.Items {
 		obj := like.DeepCopy()

@@ -208,11 +208,11 @@
   revision = "6f77996f0c42f7b84e5a2b252227263f93432e9b"
 
 [[projects]]
-  digest = "1:7915c656a10819b240db94ffd6afc6a621af4687db735341d9919668750485ec"
+  digest = "1:10aa62acd56f635de190110a836aa261b3774e697b2b6a7af27d8263cf856d47"
   name = "github.com/google/go-containerregistry"
   packages = ["pkg/name"]
   pruneopts = "UT"
-  revision = "abf9ef06abd9f532944e28e8942644ea4b710a40"
+  revision = "b02d448a3705facf11018efff34f1d2830be5724"
 
 [[projects]]
   digest = "1:a6181aca1fd5e27103f9a920876f29ac72854df7345a39f3b01e61c8c94cc8af"
@@ -310,21 +310,6 @@
   pruneopts = "UT"
   revision = "0b417c4ec4a8a82eecc22a1459a504aa55163d61"
   version = "v1.4.0"
-
-[[projects]]
-  digest = "1:55dd75b035149229fea0cc57042c96199fa33cf465a64dfeec511f6d5c4f666c"
-  name = "github.com/knative/eventing"
-  packages = [
-    "pkg/apis/duck",
-    "pkg/apis/duck/v1alpha1",
-    "pkg/apis/eventing",
-    "pkg/apis/eventing/v1alpha1",
-    "pkg/apis/messaging",
-    "pkg/apis/messaging/v1alpha1",
-  ]
-  pruneopts = "UT"
-  revision = "a59dae6f326057211f43f7c2d1414a9fd821b8aa"
-  version = "v0.8.0"
 
 [[projects]]
   digest = "1:3804a3a02964db8e6db3e5e7960ac1c1a9b12835642dd4f4ac4e56c749ec73eb"
@@ -1044,14 +1029,31 @@
   version = "v0.4.0"
 
 [[projects]]
-  branch = "release-0.8"
-  digest = "1:d8baea96539a4c05d08c9746168b8f2de5aaaee265d0e737ed09966787cd2691"
+  digest = "1:d0ea2f3a2e8db4a42040acd4f2aba6d552fcc4d39867ce9a24083e7a128fe634"
+  name = "knative.dev/eventing"
+  packages = [
+    "pkg/apis/duck",
+    "pkg/apis/duck/v1alpha1",
+    "pkg/apis/eventing",
+    "pkg/apis/eventing/v1alpha1",
+    "pkg/apis/messaging",
+    "pkg/apis/messaging/v1alpha1",
+  ]
+  pruneopts = "UT"
+  revision = "a1a098150e5b624573c391563cd13f1703dcc10d"
+  version = "v0.9.0"
+
+[[projects]]
+  branch = "release-0.9"
+  digest = "1:5731c596ba8b293a4422f9a61c25745602c34b37877d75a6ce95ae8239d66de8"
   name = "knative.dev/pkg"
   packages = [
     "apis",
     "apis/duck",
+    "apis/duck/v1",
     "apis/duck/v1alpha1",
     "apis/duck/v1beta1",
+    "apis/v1alpha1",
     "changeset",
     "configmap",
     "kmeta",
@@ -1060,30 +1062,29 @@
     "logging/logkey",
     "metrics",
     "metrics/metricskey",
+    "network",
     "ptr",
     "webhook",
   ]
   pruneopts = "UT"
-  revision = "2b848f71969c997809a2dbea8351eaadb23e9bc9"
+  revision = "74659889c421b26b9a416fd203f5a8d3e602bfb2"
 
 [[projects]]
-  digest = "1:f84f166972bd1138012ecf02909b3e1f3438230951accac73da6572b404dfb8f"
+  digest = "1:9fbd2e309b10ecfc7032433c3642819fef5ae8bc38e4c7d8bd58511ede9d6b81"
   name = "knative.dev/serving"
   packages = [
     "pkg/apis/autoscaling",
     "pkg/apis/config",
     "pkg/apis/networking",
-    "pkg/apis/networking/v1alpha1",
     "pkg/apis/serving",
-    "pkg/apis/serving/v1alpha1",
-    "pkg/apis/serving/v1beta1",
+    "pkg/apis/serving/v1",
     "pkg/gc",
     "pkg/network",
     "pkg/reconciler/route/config",
   ]
   pruneopts = "UT"
-  revision = "6da659b889aa650b00af07223855a6da3b547c46"
-  version = "v0.8.1"
+  revision = "b066e90ccd6f091e0faf65a759f3ce789d373457"
+  version = "v0.9.0"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -1092,11 +1093,11 @@
     "github.com/cloudevents/sdk-go",
     "github.com/cloudevents/sdk-go/pkg/cloudevents",
     "github.com/kelseyhightower/envconfig",
-    "github.com/knative/eventing/pkg/apis/eventing/v1alpha1",
-    "github.com/knative/eventing/pkg/apis/messaging/v1alpha1",
     "github.com/tmc/dot",
+    "gopkg.in/yaml.v2",
     "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
+    "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
     "k8s.io/apimachinery/pkg/runtime",
     "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/client-go/dynamic",
@@ -1105,9 +1106,12 @@
     "k8s.io/client-go/tools/clientcmd",
     "k8s.io/code-generator/cmd/deepcopy-gen",
     "k8s.io/code-generator/cmd/defaulter-gen",
+    "knative.dev/eventing/pkg/apis/eventing/v1alpha1",
+    "knative.dev/eventing/pkg/apis/messaging/v1alpha1",
     "knative.dev/pkg/apis",
+    "knative.dev/pkg/apis/duck/v1",
     "knative.dev/pkg/apis/duck/v1beta1",
-    "knative.dev/serving/pkg/apis/serving/v1alpha1",
+    "knative.dev/serving/pkg/apis/serving/v1",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
