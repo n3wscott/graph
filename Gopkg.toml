@@ -17,16 +17,16 @@ required = [
 
 [[override]]
   name = "k8s.io/client-go"
-  version = "kubernetes-1.12.9"
+  version = "kubernetes-1.15.3"
 
 [[override]]
   name = "knative.dev/pkg"
-  branch = "release-0.9"
+  branch = "release-0.10"
 
 [[override]]
   name = "knative.dev/eventing"
-  version = "0.9.0"
+  version = "0.10.0"
 
 [[override]]
   name = "knative.dev/serving"
-  version = "0.9.0"
+  version = "0.10.0"

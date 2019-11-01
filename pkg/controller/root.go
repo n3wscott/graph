@@ -62,7 +62,7 @@ func (c *Controller) RootHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch focus {
 	case "sub", "subs", "subscription", "subscriptions":
-		dotGraph = graph.ForSubscriptions(c.client, c.namespace)
+		dotGraph, yv = graph.ForSubscriptions(c.client, c.namespace)
 	case "broker", "trigger", "triggers":
 		fallthrough
 	default:

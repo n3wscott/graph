@@ -46,7 +46,7 @@ func ForTriggers(client dynamic.Interface, ns string) (string, []knative.YamlVie
 	return g.String(), yv
 }
 
-func ForSubscriptions(client dynamic.Interface, ns string) string {
+func ForSubscriptions(client dynamic.Interface, ns string) (string, []knative.YamlView) {
 	g := New(ns)
 
 	c := knative.New(client)
@@ -78,17 +78,13 @@ func ForSubscriptions(client dynamic.Interface, ns string) string {
 		g.AddKnService(service)
 	}
 
-	//for _, channel := range c.Channels(ns, &yv) {
-	//	g.AddChannel(channel)
-	//}
-
-	for _, channel := range c.InMemoryChannels(ns, &yv) {
-		g.AddInMemoryChannel(channel)
+	for _, channel := range c.Channels(ns, &yv) {
+		g.AddChannel(channel)
 	}
 
 	for _, subscription := range c.Subscriptions(ns, &yv) {
 		g.AddSubscription(subscription)
 	}
 
-	return g.String()
+	return g.String(), yv
 }

@@ -3,10 +3,12 @@ package graph
 import (
 	"fmt"
 	"knative.dev/pkg/apis"
+	"knative.dev/pkg/apis/v1alpha1"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
+	duckv1alpha1 "github.com/knative/eventing/pkg/apis/duck/v1alpha1"
 	"github.com/tmc/dot"
 	eventingv1alpha1 "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
 	messagingv1alpha1 "knative.dev/eventing/pkg/apis/messaging/v1alpha1"
@@ -14,7 +16,6 @@ import (
 	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
-	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
 	"github.com/n3wscott/graph/pkg/knative"
 )
 
@@ -58,40 +59,15 @@ func (g *Graph) newEdge(src, dst *dot.Node) *dot.Edge {
 	return e
 }
 
-//func (g *Graph) AddChannel(channel eventingv1alpha1.Channel) {
-//	ck := channelKey(channel.Name)
-//	uri := channel.Status.Address.GetURL()
-//	dns := strings.TrimSuffix((&uri).String(), "/")
-//	cn := dot.NewNode("Channel " + channel.Name)
-//
-//	_ = cn.Set("URL", knative.ToYamlViewURL(channel.Name, channel.Kind, channel.APIVersion))
-//	setNodeShapeForKind(cn, channel.Kind, channel.APIVersion)
-//	setNodeColorForStatus(cn, channel.Status.Status)
-//
-//	_ = cn.Set("shape", "oval") // TODO move to setNodeShapeForKind
-//	_ = cn.Set("label", "Ingress")
-//
-//	g.nodes[ck] = cn
-//	g.dnsToKey[dns] = ck
-//
-//	cg := dot.NewSubgraph(fmt.Sprintf("cluster_%d", len(g.subgraphs)))
-//	_ = cg.Set("label", fmt.Sprintf("Channel %s\n%s", channel.Name, dns))
-//	g.subgraphs[ck] = cg
-//	cg.AddNode(cn)
-//	g.AddSubgraph(cg)
-//}
-
-// TODO: add channel ducktype.
-
-func (g *Graph) AddInMemoryChannel(channel messagingv1alpha1.InMemoryChannel) {
-	ck := inMemoryChannelKey(channel.Name)
+func (g *Graph) AddChannel(channel duckv1alpha1.Channelable) {
+	ck := channelKey(channel.Name)
 	uri := channel.Status.Address.GetURL()
 	dns := strings.TrimSuffix((&uri).String(), "/")
-	cn := dot.NewNode("InMemoryChannel " + channel.Name)
+	cn := dot.NewNode("Channel " + channel.Name)
 
 	_ = cn.Set("URL", knative.ToYamlViewURL(channel.Name, channel.Kind, channel.APIVersion))
 	setNodeShapeForKind(cn, channel.Kind, channel.APIVersion)
-	setNodeColorForStatusV1Beta1(cn, channel.Status.Status)
+	setNodeColorForStatus(cn, channel.Status.Status)
 
 	_ = cn.Set("shape", "oval") // TODO move to setNodeShapeForKind
 	_ = cn.Set("label", "Ingress")
@@ -100,7 +76,7 @@ func (g *Graph) AddInMemoryChannel(channel messagingv1alpha1.InMemoryChannel) {
 	g.dnsToKey[dns] = ck
 
 	cg := dot.NewSubgraph(fmt.Sprintf("cluster_%d", len(g.subgraphs)))
-	_ = cg.Set("label", fmt.Sprintf("InMemoryChannel %s\n%s", channel.Name, dns))
+	_ = cg.Set("label", fmt.Sprintf("Channel %s\n%s", channel.Name, dns))
 	g.subgraphs[ck] = cg
 	cg.AddNode(cn)
 	g.AddSubgraph(cg)
@@ -110,7 +86,7 @@ func (g *Graph) AddSubscription(subscription messagingv1alpha1.Subscription) {
 	sk := subscriptionKey(subscription.Name)
 	sn := dot.NewNode("Subscription " + subscription.Name)
 	_ = sn.Set("URL", knative.ToYamlViewURL(subscription.Name, subscription.Kind, subscription.APIVersion))
-	setNodeColorForStatusV1Beta1(sn, subscription.Status.Status)
+	setNodeColorForStatus(sn, subscription.Status.Status)
 
 	ck := gvkKey(subscription.Spec.Channel.GroupVersionKind(), subscription.Spec.Channel.Name)
 	if cg, ok := g.subgraphs[ck]; !ok {
@@ -123,7 +99,7 @@ func (g *Graph) AddSubscription(subscription messagingv1alpha1.Subscription) {
 	if sub := g.getOrCreateSubscriber(subscription.Spec.Subscriber); sub != nil {
 		e := dot.NewEdge(sn, sub)
 		_ = e.Set("dir", "both")
-		setEdgeColorForStatusV1Beta1(e, subscription.Status.Status)
+		setEdgeColorForStatus(e, subscription.Status.Status)
 		g.AddEdge(e)
 	}
 
@@ -142,7 +118,7 @@ func (g *Graph) AddBroker(broker eventingv1alpha1.Broker) {
 	_ = bn.Set("shape", "oval")
 	_ = bn.Set("label", "Ingress")
 	_ = bn.Set("URL", knative.ToYamlViewURL(broker.Name, broker.Kind, broker.APIVersion))
-	setNodeColorForStatusV1Beta1(bn, broker.Status.Status)
+	setNodeColorForStatus(bn, broker.Status.Status)
 
 	g.nodes[key] = bn
 	g.dnsToKey[dns] = key
@@ -154,12 +130,12 @@ func (g *Graph) AddBroker(broker eventingv1alpha1.Broker) {
 	g.AddSubgraph(bg)
 }
 
-func (g *Graph) AddSource(source duckv1alpha1.SourceType) {
+func (g *Graph) AddSource(source duckv1.Source) {
 	key := gvkKey(source.GroupVersionKind(), source.Name)
 	sn := dot.NewNode(fmt.Sprintf("Source %s\n%s\n%s", source.Name, source.Kind, source.GroupVersionKind().Group))
 	_ = sn.Set("shape", "box")
 
-	setNodeColorForStatusV1Beta1(sn, source.Status.Status)
+	setNodeColorForStatus(sn, source.Status.Status)
 	_ = sn.Set("URL", knative.ToYamlViewURL(source.Name, source.Kind, source.APIVersion))
 	g.AddNode(sn)
 	g.nodes[key] = sn
@@ -185,7 +161,7 @@ func (g *Graph) AddSource(source duckv1alpha1.SourceType) {
 		}
 
 		e := dot.NewEdge(sn, bn)
-		setEdgeColorForStatusV1Beta1(e, source.Status.Status)
+		setEdgeColorForStatus(e, source.Status.Status)
 		if sg, ok := g.subgraphs[bk]; ok {
 			// This is not working.
 			_ = e.Set("lhead", sg.Name())
@@ -207,7 +183,7 @@ func (g *Graph) AddTrigger(trigger eventingv1alpha1.Trigger) {
 	tn := dot.NewNode("Trigger " + trigger.Name)
 	_ = tn.Set("shape", "box")
 	_ = tn.Set("URL", knative.ToYamlViewURL(trigger.Name, trigger.Kind, trigger.APIVersion))
-	setNodeColorForStatusV1Beta1(tn, trigger.Status.Status)
+	setNodeColorForStatus(tn, trigger.Status.Status)
 
 	if sg, ok := g.subgraphs[bk]; ok {
 		sg.AddNode(tn)
@@ -227,7 +203,7 @@ func (g *Graph) AddTrigger(trigger eventingv1alpha1.Trigger) {
 	if sub := g.getOrCreateSubscriber(trigger.Spec.Subscriber); sub != nil {
 		e := dot.NewEdge(tn, sub)
 		_ = e.Set("dir", "both")
-		setEdgeColorForStatusV1Beta1(e, trigger.Status.Status)
+		setEdgeColorForStatus(e, trigger.Status.Status)
 		fmt.Println("sub", sub, e)
 		g.AddEdge(e)
 	}
@@ -319,7 +295,7 @@ func (g *Graph) AddSequence(seq messagingv1alpha1.Sequence) {
 	sn := dot.NewNode("Sequence " + dns)
 	_ = sn.Set("label", "Start")
 	_ = sn.Set("URL", knative.ToYamlViewURL(seq.Name, seq.Kind, seq.APIVersion))
-	setNodeColorForStatusV1Beta1(sn, seq.Status.Status)
+	setNodeColorForStatus(sn, seq.Status.Status)
 
 	g.nodes[key] = sn
 	sg.AddNode(sn)
@@ -340,12 +316,12 @@ func (g *Graph) AddSequence(seq messagingv1alpha1.Sequence) {
 		if sub := g.getOrCreateSubscriber(&step); sub != nil {
 			e := dot.NewEdge(stepn, sub)
 			_ = e.Set("dir", "both")
-			setEdgeColorForStatusV1Beta1(e, seq.Status.Status)
+			setEdgeColorForStatus(e, seq.Status.Status)
 			g.AddEdge(e)
 		}
 
 		e := dot.NewEdge(previousNode, stepn)
-		setEdgeColorForStatusV1Beta1(e, seq.Status.Status)
+		setEdgeColorForStatus(e, seq.Status.Status)
 		g.AddEdge(e)
 		previousNode = stepn
 	}
@@ -359,13 +335,13 @@ func (g *Graph) AddSequence(seq messagingv1alpha1.Sequence) {
 
 		// TODO where this points.
 		e := dot.NewEdge(previousNode, replyn)
-		setEdgeColorForStatusV1Beta1(e, seq.Status.Status)
+		setEdgeColorForStatus(e, seq.Status.Status)
 		g.AddEdge(e)
 
-		rk := gvkKey(seq.Spec.Reply.GroupVersionKind(), seq.Spec.Reply.Name)
+		rk := gvkKey(seq.Spec.Reply.Ref.GroupVersionKind(), seq.Spec.Reply.Ref.Name)
 		if rn, ok := g.nodes[rk]; ok {
 			e := dot.NewEdge(replyn, rn)
-			setEdgeColorForStatusV1Beta1(e, seq.Status.Status)
+			setEdgeColorForStatus(e, seq.Status.Status)
 			g.AddEdge(e)
 		}
 	}
@@ -424,22 +400,8 @@ func setNodeColorForStatus(node *dot.Node, status duckv1.Status) {
 	}
 }
 
-func setNodeColorForStatusV1Beta1(node *dot.Node, status duckv1beta1.Status) {
-	_ = node.Set("fillcolor", "white")
-	_ = node.Set("style", "filled")
-	for name, value := range getColorMapForStatusV1Beta1(status) {
-		_ = node.Set(name, value)
-	}
-}
-
 func setEdgeColorForStatus(edge *dot.Edge, status duckv1.Status) {
 	for name, value := range getColorMapForStatus(status) {
-		_ = edge.Set(name, value)
-	}
-}
-
-func setEdgeColorForStatusV1Beta1(edge *dot.Edge, status duckv1beta1.Status) {
-	for name, value := range getColorMapForStatusV1Beta1(status) {
 		_ = edge.Set(name, value)
 	}
 }
@@ -458,14 +420,14 @@ func (g *Graph) getOrCreateSink(uri string) *dot.Node {
 	return g.nodes[key]
 }
 
-func (g *Graph) getOrCreateSubscriber(subscriber *messagingv1alpha1.SubscriberSpec) *dot.Node {
+func (g *Graph) getOrCreateSubscriber(subscriber *v1alpha1.Destination) *dot.Node {
 	key := "?"
 	label := "?"
 
 	if subscriber != nil {
 		if subscriber.URI != nil {
-			label = *subscriber.URI
-			key = uriKey(*subscriber.URI)
+			label = subscriber.URI.String()
+			key = uriKey(subscriber.URI.String())
 		} else if subscriber.Ref != nil {
 			label = fmt.Sprintf("%s\n%s\n%s",
 				subscriber.Ref.Name,
@@ -494,30 +456,27 @@ func (g *Graph) getOrCreateSubscriber(subscriber *messagingv1alpha1.SubscriberSp
 }
 
 func (g *Graph) getOrCreateReply(rep *messagingv1alpha1.ReplyStrategy) *dot.Node {
-	if rep != nil && rep.Channel != nil {
-		ck := gvkKey(rep.Channel.GroupVersionKind(), rep.Channel.Name)
+	if rep != nil && rep.Channel != nil && rep.Channel.Ref != nil {
+		ck := gvkKey(rep.Channel.Ref.GroupVersionKind(), rep.Channel.Ref.Name)
 		if cn, ok := g.nodes[ck]; !ok {
-			cn = dot.NewNode("Unknown Channel " + rep.Channel.Name)
+			cn = dot.NewNode("Unknown Channel " + rep.Channel.Ref.Name)
 		} else {
 			return cn
 		}
 	}
+	// TODO: channels now have uris.
 	return nil
 }
 
-func sinkDNS(source duckv1alpha1.SourceType) string {
+func sinkDNS(source duckv1.Source) string {
 	if source.Status.SinkURI != nil {
-		return strings.TrimSuffix(*(source.Status.SinkURI), "/")
+		return strings.TrimSuffix(source.Status.SinkURI.String(), "/")
 	}
 	return ""
 }
 
 func channelKey(name string) string {
 	return eventingKey("channel", name)
-}
-
-func inMemoryChannelKey(name string) string {
-	return messagingKey("inmemorychannel", name)
 }
 
 func subscriptionKey(name string) string {

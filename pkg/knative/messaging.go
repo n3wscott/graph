@@ -41,37 +41,6 @@ func (c *Client) Sequences(namespace string, yv *[]YamlView) []messagingv1alpha1
 	return all
 }
 
-func (c *Client) InMemoryChannels(namespace string, yv *[]YamlView) []messagingv1alpha1.InMemoryChannel {
-	gvr := schema.GroupVersionResource{
-		Group:    "messaging.knative.dev",
-		Version:  "v1alpha1",
-		Resource: "inmemorychannels",
-	}
-	like := messagingv1alpha1.InMemoryChannel{}
-
-	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
-	if err != nil {
-		log.Printf("Failed to List InMemoryChannels, %v", err)
-		return nil
-	}
-
-	all := make([]messagingv1alpha1.InMemoryChannel, len(list.Items))
-
-	for i, item := range list.Items {
-		obj := like.DeepCopy()
-		if err = runtime.DefaultUnstructuredConverter.FromUnstructured(item.Object, obj); err != nil {
-			log.Fatalf("Error DefaultUnstructuree.Dynamiconverter. %v", err)
-		}
-		obj.ResourceVersion = gvr.Version
-		obj.APIVersion = gvr.GroupVersion().String()
-		all[i] = *obj
-
-		// Yaml View
-		AddToYamlView(item, yv)
-	}
-	return all
-}
-
 func (c *Client) Subscriptions(namespace string, yv *[]YamlView) []messagingv1alpha1.Subscription {
 	gvr := schema.GroupVersionResource{
 		Group:    "messaging.knative.dev",

@@ -20,10 +20,11 @@ import (
 	v1 "k8s.io/api/apps/v1"
 	"knative.dev/pkg/apis"
 	pkgduckv1alpha1 "knative.dev/pkg/apis/duck/v1alpha1"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 
 	duckv1alpha1 "knative.dev/eventing/pkg/apis/duck/v1alpha1"
 	messagingv1alpha1 "knative.dev/eventing/pkg/apis/messaging/v1alpha1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 )
 
 type testHelper struct{}
@@ -31,9 +32,9 @@ type testHelper struct{}
 // TestHelper contains helpers for unit tests.
 var TestHelper = testHelper{}
 
-func (testHelper) ReadyChannelStatusCRD() *duckv1alpha1.ChannelableStatus {
+func (testHelper) ReadyChannelStatus() *duckv1alpha1.ChannelableStatus {
 	cs := &duckv1alpha1.ChannelableStatus{
-		Status: duckv1beta1.Status{},
+		Status: duckv1.Status{},
 		AddressStatus: pkgduckv1alpha1.AddressStatus{
 			Address: &pkgduckv1alpha1.Addressable{
 				Addressable: duckv1beta1.Addressable{
@@ -46,7 +47,7 @@ func (testHelper) ReadyChannelStatusCRD() *duckv1alpha1.ChannelableStatus {
 	return cs
 }
 
-func (t testHelper) NotReadyChannelStatusCRD() *duckv1alpha1.ChannelableStatus {
+func (t testHelper) NotReadyChannelStatus() *duckv1alpha1.ChannelableStatus {
 	return &duckv1alpha1.ChannelableStatus{}
 }
 
@@ -68,8 +69,8 @@ func (testHelper) NotReadySubscriptionStatus() *messagingv1alpha1.SubscriptionSt
 func (t testHelper) ReadyBrokerStatus() *BrokerStatus {
 	bs := &BrokerStatus{}
 	bs.PropagateIngressDeploymentAvailability(t.AvailableDeployment())
-	bs.PropagateIngressChannelReadinessCRD(t.ReadyChannelStatusCRD())
-	bs.PropagateTriggerChannelReadinessCRD(t.ReadyChannelStatusCRD())
+	bs.PropagateIngressChannelReadiness(t.ReadyChannelStatus())
+	bs.PropagateTriggerChannelReadiness(t.ReadyChannelStatus())
 	bs.PropagateIngressSubscriptionReadiness(t.ReadySubscriptionStatus())
 	bs.PropagateFilterDeploymentAvailability(t.AvailableDeployment())
 	bs.SetAddress(&apis.URL{Scheme: "http", Host: "foo"})
@@ -78,7 +79,7 @@ func (t testHelper) ReadyBrokerStatus() *BrokerStatus {
 
 func (t testHelper) NotReadyBrokerStatus() *BrokerStatus {
 	bs := &BrokerStatus{}
-	bs.PropagateIngressChannelReadinessCRD(&duckv1alpha1.ChannelableStatus{})
+	bs.PropagateIngressChannelReadiness(&duckv1alpha1.ChannelableStatus{})
 	return bs
 }
 
