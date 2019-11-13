@@ -402,8 +402,14 @@ func getColorMapForStatus(status duckv1.Status) map[string]string {
 
 func getColorMapForStatusV1Beta1(status duckv1beta1.Status) map[string]string {
 	cond := status.GetCondition(apis.ConditionReady)
+	if cond == nil {
+		cond = status.GetCondition(apis.ConditionSucceeded)
+	}
 	attrs := make(map[string]string)
-	if cond.IsTrue() {
+	if cond == nil {
+		attrs["color"] = "purple"
+		attrs["tootlip"] = "missing status field"
+	} else if cond.IsTrue() {
 		attrs["color"] = "black"
 		attrs["tooltip"] = fmt.Sprintf("Ready as of %s", cond.LastTransitionTime.Inner.String())
 	} else if cond.IsUnknown() {
