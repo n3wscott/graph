@@ -51,3 +51,9 @@ ko resolve -f config \
   | sed "s/default/${NAMESPACE}/" \
   | kubectl apply -n $NAMESPACE --filename -
 ```
+
+
+### TODO:
+
+- [ ] Get Deployments working when broker is the sink.
+- [ ] Work with owner ref graphs.

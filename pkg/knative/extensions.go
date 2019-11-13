@@ -42,6 +42,7 @@ func (c *Client) SourceCRDs() []apiextensions.CustomResourceDefinition {
 
 func crdsToGVR(crds []apiextensions.CustomResourceDefinition) []schema.GroupVersionResource {
 	gvrs := make([]schema.GroupVersionResource, 0)
+	log.Println("Source GVRs ----")
 	for _, crd := range crds {
 		for _, v := range crd.Spec.Versions {
 			if !v.Served {
@@ -54,6 +55,7 @@ func crdsToGVR(crds []apiextensions.CustomResourceDefinition) []schema.GroupVers
 				Resource: crd.Spec.Names.Plural,
 			}
 			gvrs = append(gvrs, gvr)
+			log.Printf(" %v", gvr)
 		}
 	}
 	return gvrs
