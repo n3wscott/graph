@@ -79,9 +79,9 @@ func (c *Controller) DeleteTasksHandler(resp http.ResponseWriter, req *http.Requ
 				event.SetSource("n3wscott/graph")
 				event.SetExtension("target", fmt.Sprintf("%s/%s", a.Namespace, a.Name))
 				if result := c.CE.Send(context.Background(), event); cloudevents.IsUndelivered(result) {
-					fmt.Println("failed to send:", result)
+					fmt.Printf("failed to send: %s\n", result)
 				} else {
-					fmt.Println("sent: %s, %s\n", event.String(), result)
+					fmt.Printf("sent: %s, %s\n", event.String(), result)
 				}
 			}
 		}

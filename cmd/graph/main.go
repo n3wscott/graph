@@ -57,7 +57,7 @@ func main() {
 
 	cfg, err := config.BuildClientConfig(kubeconfig, cluster)
 	if err != nil {
-		log.Fatalf("Error building kubeconfig", err)
+		log.Fatalf("Error building kubeconfig: %s", err)
 	}
 	client := dynamic.NewForConfigOrDie(cfg)
 
