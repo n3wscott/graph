@@ -9,7 +9,6 @@ name: Create Release
 jobs:
 
   ko-resolve:
-    needs: cli
     name: Release ko artifact
     runs-on: ubuntu-latest
     env:
