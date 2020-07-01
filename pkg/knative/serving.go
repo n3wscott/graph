@@ -12,7 +12,7 @@ import (
 func (c *Client) KnServices(namespace string, yv *[]YamlView) []servingv1.Service {
 	gvr := schema.GroupVersionResource{
 		Group:    "serving.knative.dev",
-		Version:  "v1alpha1",
+		Version:  "v1",
 		Resource: "services",
 	}
 	like := servingv1.Service{}

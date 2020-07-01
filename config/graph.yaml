@@ -7,7 +7,7 @@ spec:
     spec:
       serviceAccountName: n3wscott-graph
       containers:
-        - image: github.com/n3wscott/graph/cmd/graph
+        - image: ko://github.com/n3wscott/graph/cmd/graph
           env:
             - name: NAMESPACE
               value: default

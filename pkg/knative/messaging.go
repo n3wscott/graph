@@ -7,16 +7,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	messagingv1alpha1 "knative.dev/eventing/pkg/apis/messaging/v1alpha1"
+	flowsv1beta1 "knative.dev/eventing/pkg/apis/flows/v1beta1"
+	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 )
 
-func (c *Client) Sequences(namespace string, yv *[]YamlView) []messagingv1alpha1.Sequence {
+func (c *Client) Sequences(namespace string, yv *[]YamlView) []flowsv1beta1.Sequence {
 	gvr := schema.GroupVersionResource{
 		Group:    "messaging.knative.dev",
-		Version:  "v1alpha1",
+		Version:  "v1beta1",
 		Resource: "sequences",
 	}
-	like := messagingv1alpha1.Sequence{}
+	like := flowsv1beta1.Sequence{}
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -24,7 +25,7 @@ func (c *Client) Sequences(namespace string, yv *[]YamlView) []messagingv1alpha1
 		return nil
 	}
 
-	all := make([]messagingv1alpha1.Sequence, len(list.Items))
+	all := make([]flowsv1beta1.Sequence, len(list.Items))
 
 	for i, item := range list.Items {
 		obj := like.DeepCopy()
@@ -41,13 +42,13 @@ func (c *Client) Sequences(namespace string, yv *[]YamlView) []messagingv1alpha1
 	return all
 }
 
-func (c *Client) InMemoryChannels(namespace string, yv *[]YamlView) []messagingv1alpha1.InMemoryChannel {
+func (c *Client) InMemoryChannels(namespace string, yv *[]YamlView) []messagingv1beta1.InMemoryChannel {
 	gvr := schema.GroupVersionResource{
 		Group:    "messaging.knative.dev",
-		Version:  "v1alpha1",
+		Version:  "v1beta1",
 		Resource: "inmemorychannels",
 	}
-	like := messagingv1alpha1.InMemoryChannel{}
+	like := messagingv1beta1.InMemoryChannel{}
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -55,7 +56,7 @@ func (c *Client) InMemoryChannels(namespace string, yv *[]YamlView) []messagingv
 		return nil
 	}
 
-	all := make([]messagingv1alpha1.InMemoryChannel, len(list.Items))
+	all := make([]messagingv1beta1.InMemoryChannel, len(list.Items))
 
 	for i, item := range list.Items {
 		obj := like.DeepCopy()
@@ -72,13 +73,13 @@ func (c *Client) InMemoryChannels(namespace string, yv *[]YamlView) []messagingv
 	return all
 }
 
-func (c *Client) Subscriptions(namespace string, yv *[]YamlView) []messagingv1alpha1.Subscription {
+func (c *Client) Subscriptions(namespace string, yv *[]YamlView) []messagingv1beta1.Subscription {
 	gvr := schema.GroupVersionResource{
 		Group:    "messaging.knative.dev",
-		Version:  "v1alpha1",
+		Version:  "v1beta1",
 		Resource: "subscriptions",
 	}
-	like := messagingv1alpha1.Subscription{}
+	like := messagingv1beta1.Subscription{}
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -86,7 +87,7 @@ func (c *Client) Subscriptions(namespace string, yv *[]YamlView) []messagingv1al
 		return nil
 	}
 
-	all := make([]messagingv1alpha1.Subscription, len(list.Items))
+	all := make([]messagingv1beta1.Subscription, len(list.Items))
 
 	for i, item := range list.Items {
 		obj := like.DeepCopy()

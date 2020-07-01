@@ -3,15 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/cloudevents/sdk-go"
-	"github.com/kelseyhightower/envconfig"
-	"k8s.io/client-go/dynamic"
 	"log"
 	"net/http"
 	"os"
 	"os/user"
 	"path"
 	"strings"
+
+	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/kelseyhightower/envconfig"
+	"k8s.io/client-go/dynamic"
 
 	"github.com/n3wscott/graph/pkg/config"
 	"github.com/n3wscott/graph/pkg/controller"
@@ -56,15 +57,14 @@ func main() {
 
 	cfg, err := config.BuildClientConfig(kubeconfig, cluster)
 	if err != nil {
-		log.Fatalf("Error building kubeconfig", err)
+		log.Fatalf("Error building kubeconfig: %s", err)
 	}
 	client := dynamic.NewForConfigOrDie(cfg)
 
 	c := controller.New(env.FilePath, env.Namespace, client)
 
 	if env.Target != "" {
-		t, err := cloudevents.NewHTTPTransport(
-			cloudevents.WithBinaryEncoding(),
+		t, err := cloudevents.NewHTTP(
 			cloudevents.WithTarget(env.Target),
 		)
 		if err != nil {
