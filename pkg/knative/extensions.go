@@ -15,14 +15,14 @@ func (c *Client) SourceCRDs() []apiextensions.CustomResourceDefinition {
 
 	gvr := schema.GroupVersionResource{
 		Group:    "apiextensions.k8s.io",
-		Version:  "v1beta1",
+		Version:  "v1",
 		Resource: "customresourcedefinitions",
 	}
 	like := apiextensions.CustomResourceDefinition{}
 
 	list, err := c.dc.Resource(gvr).List(metav1.ListOptions{LabelSelector: "eventing.knative.dev/source=true"})
 	if err != nil {
-		log.Printf("Failed to List Triggers, %v", err)
+		log.Printf("Failed to List Sources, %v", err)
 		return nil
 	}
 
@@ -45,7 +45,7 @@ func crdsToGVR(crds []apiextensions.CustomResourceDefinition) []schema.GroupVers
 	log.Println("Source GVRs ----")
 	for _, crd := range crds {
 		for _, v := range crd.Spec.Versions {
-			if !v.Served {
+			if !v.Storage {
 				continue
 			}
 

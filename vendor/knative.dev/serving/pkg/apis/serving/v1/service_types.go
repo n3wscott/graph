@@ -25,6 +25,7 @@ import (
 )
 
 // +genclient
+// +genreconciler
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Service acts as a top-level container that manages a Route and Configuration
@@ -38,7 +39,7 @@ import (
 // The Service's controller will track the statuses of its owned Configuration
 // and Route, reflecting their statuses and conditions as its own.
 //
-// See also: https://knative.dev/serving/blob/master/docs/spec/overview.md#service
+// See also: https://github.com/knative/serving/blob/master/docs/spec/overview.md#service
 type Service struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -62,6 +63,9 @@ var (
 
 	// Check that we can create OwnerReferences to a Service.
 	_ kmeta.OwnerRefable = (*Service)(nil)
+
+	// Check that the type conforms to the duck Knative Resource shape.
+	_ duckv1.KRShaped = (*Service)(nil)
 )
 
 // ServiceSpec represents the configuration for the Service object.
@@ -87,7 +91,27 @@ const (
 	// ServiceConditionReady is set when the service is configured
 	// and has available backends ready to receive traffic.
 	ServiceConditionReady = apis.ConditionReady
+
+	// ServiceConditionRoutesReady is set when the service's underlying
+	// routes have reported readiness.
+	ServiceConditionRoutesReady apis.ConditionType = "RoutesReady"
+
+	// ServiceConditionConfigurationsReady is set when the service's underlying
+	// configurations have reported readiness.
+	ServiceConditionConfigurationsReady apis.ConditionType = "ConfigurationsReady"
 )
+
+// IsServiceCondition returns true if the ConditionType is a service condition type
+func IsServiceCondition(t apis.ConditionType) bool {
+	switch t {
+	case
+		ServiceConditionReady,
+		ServiceConditionRoutesReady,
+		ServiceConditionConfigurationsReady:
+		return true
+	}
+	return false
+}
 
 // ServiceStatus represents the Status stanza of the Service resource.
 type ServiceStatus struct {
@@ -110,4 +134,9 @@ type ServiceList struct {
 	metav1.ListMeta `json:"metadata"`
 
 	Items []Service `json:"items"`
+}
+
+// GetStatus retrieves the status of the Service. Implements the KRShaped interface.
+func (t *Service) GetStatus() *duckv1.Status {
+	return &t.Status.Status
 }

@@ -1,7 +1,7 @@
 package controller
 
 import (
-	cloudevents "github.com/cloudevents/sdk-go"
+	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"k8s.io/client-go/dynamic"
 	"net/http"
 	"sync"

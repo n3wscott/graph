@@ -7,17 +7,16 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	eventingv1alpha1 "knative.dev/eventing/pkg/apis/eventing/v1alpha1"
-
-	duckv1alpha1 "github.com/n3wscott/graph/pkg/apis/duck/v1alpha1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
+	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
 )
 
-func (c *Client) Sources(namespace string, yv *[]YamlView) []duckv1alpha1.SourceType {
+func (c *Client) Sources(namespace string, yv *[]YamlView) []duckv1.Source {
 	gvrs := crdsToGVR(c.SourceCRDs())
-	all := make([]duckv1alpha1.SourceType, 0)
+	all := make([]duckv1.Source, 0)
 
 	for _, gvr := range gvrs {
-		like := duckv1alpha1.SourceType{}
+		like := duckv1.Source{}
 		list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 		if err != nil {
 			log.Printf("Failed to List %s, %v", gvr.String(), err)
@@ -40,13 +39,13 @@ func (c *Client) Sources(namespace string, yv *[]YamlView) []duckv1alpha1.Source
 	return all
 }
 
-func (c *Client) Triggers(namespace string, yv *[]YamlView) []eventingv1alpha1.Trigger {
+func (c *Client) Triggers(namespace string, yv *[]YamlView) []eventingv1beta1.Trigger {
 	gvr := schema.GroupVersionResource{
 		Group:    "eventing.knative.dev",
-		Version:  "v1alpha1",
+		Version:  "v1beta1",
 		Resource: "triggers",
 	}
-	like := eventingv1alpha1.Trigger{}
+	like := eventingv1beta1.Trigger{}
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -54,7 +53,7 @@ func (c *Client) Triggers(namespace string, yv *[]YamlView) []eventingv1alpha1.T
 		return nil
 	}
 
-	all := make([]eventingv1alpha1.Trigger, len(list.Items))
+	all := make([]eventingv1beta1.Trigger, len(list.Items))
 
 	for i, item := range list.Items {
 		obj := like.DeepCopy()
@@ -71,13 +70,13 @@ func (c *Client) Triggers(namespace string, yv *[]YamlView) []eventingv1alpha1.T
 	return all
 }
 
-func (c *Client) Brokers(namespace string, yv *[]YamlView) []eventingv1alpha1.Broker {
+func (c *Client) Brokers(namespace string, yv *[]YamlView) []eventingv1beta1.Broker {
 	gvr := schema.GroupVersionResource{
 		Group:    "eventing.knative.dev",
-		Version:  "v1alpha1",
+		Version:  "v1beta1",
 		Resource: "brokers",
 	}
-	like := eventingv1alpha1.Broker{}
+	like := eventingv1beta1.Broker{}
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -85,7 +84,7 @@ func (c *Client) Brokers(namespace string, yv *[]YamlView) []eventingv1alpha1.Br
 		return nil
 	}
 
-	all := make([]eventingv1alpha1.Broker, len(list.Items))
+	all := make([]eventingv1beta1.Broker, len(list.Items))
 
 	for i, item := range list.Items {
 		obj := like.DeepCopy()
@@ -103,13 +102,13 @@ func (c *Client) Brokers(namespace string, yv *[]YamlView) []eventingv1alpha1.Br
 }
 
 //
-//func (c *Client) Channels(namespace string, yv *[]YamlView) []eventingv1alpha1.Channel {
+//func (c *Client) Channels(namespace string, yv *[]YamlView) []eventingv1beta1.Channel {
 //	gvr := schema.GroupVersionResource{
 //		Group:    "eventing.knative.dev",
 //		Version:  "v1alpha1",
 //		Resource: "channels",
 //	}
-//	like := eventingv1alpha1.Channel{}
+//	like := eventingv1beta1.Channel{}
 //
 //	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 //	if err != nil {
@@ -117,7 +116,7 @@ func (c *Client) Brokers(namespace string, yv *[]YamlView) []eventingv1alpha1.Br
 //		return nil
 //	}
 //
-//	all := make([]eventingv1alpha1.Channel, len(list.Items))
+//	all := make([]eventingv1beta1.Channel, len(list.Items))
 //
 //	for i, item := range list.Items {
 //		obj := like.DeepCopy()
@@ -134,13 +133,13 @@ func (c *Client) Brokers(namespace string, yv *[]YamlView) []eventingv1alpha1.Br
 //	return all
 //}
 
-func (c *Client) EventTypes(namespace string, yv *[]YamlView) []eventingv1alpha1.EventType {
+func (c *Client) EventTypes(namespace string, yv *[]YamlView) []eventingv1beta1.EventType {
 	gvr := schema.GroupVersionResource{
 		Group:    "eventing.knative.dev",
-		Version:  "v1alpha1",
+		Version:  "v1beta1",
 		Resource: "eventtypes",
 	}
-	like := eventingv1alpha1.EventType{}
+	like := eventingv1beta1.EventType{}
 
 	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
 	if err != nil {
@@ -148,7 +147,7 @@ func (c *Client) EventTypes(namespace string, yv *[]YamlView) []eventingv1alpha1
 		return nil
 	}
 
-	all := make([]eventingv1alpha1.EventType, len(list.Items))
+	all := make([]eventingv1beta1.EventType, len(list.Items))
 
 	for i, item := range list.Items {
 		obj := like.DeepCopy()

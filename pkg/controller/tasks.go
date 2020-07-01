@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cloudevents/sdk-go/pkg/cloudevents"
+	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"net/http"
 	"strings"
@@ -73,14 +73,14 @@ func (c *Controller) DeleteTasksHandler(resp http.ResponseWriter, req *http.Requ
 			fmt.Println("will delete ", a)
 
 			if c.CE != nil {
-				event := cloudevents.New()
+				event := cloudevents.NewEvent()
 				event.SetType("com.n3wscott.target")
 				event.SetSource("n3wscott/graph")
 				event.SetExtension("target", fmt.Sprintf("%s/%s", a.Namespace, a.Name))
-				if _, err := c.CE.Send(context.Background(), event); err != nil {
-					fmt.Println("failed to send:", err)
+				if result := c.CE.Send(context.Background(), event); cloudevents.IsUndelivered(result) {
+					fmt.Println("failed to send:", result)
 				} else {
-					fmt.Println("sent:\n", event.String())
+					fmt.Println("sent: %s, %s\n", event.String(), result)
 				}
 			}
 		}

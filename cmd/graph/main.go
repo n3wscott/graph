@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/cloudevents/sdk-go"
+	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/kelseyhightower/envconfig"
 	"k8s.io/client-go/dynamic"
 	"log"
@@ -63,8 +63,7 @@ func main() {
 	c := controller.New(env.FilePath, env.Namespace, client)
 
 	if env.Target != "" {
-		t, err := cloudevents.NewHTTPTransport(
-			cloudevents.WithBinaryEncoding(),
+		t, err := cloudevents.NewHTTP(
 			cloudevents.WithTarget(env.Target),
 		)
 		if err != nil {
