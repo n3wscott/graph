@@ -2,10 +2,11 @@ package graph
 
 import (
 	"fmt"
+	"strings"
+
 	flowsv1beta1 "knative.dev/eventing/pkg/apis/flows/v1beta1"
 	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
 	"knative.dev/pkg/apis"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 

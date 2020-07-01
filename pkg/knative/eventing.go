@@ -7,8 +7,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	duckv1 "knative.dev/pkg/apis/duck/v1"
 	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
 func (c *Client) Sources(namespace string, yv *[]YamlView) []duckv1.Source {

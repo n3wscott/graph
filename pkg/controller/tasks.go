@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"net/http"
 	"strings"
+
+	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"github.com/n3wscott/graph/pkg/knative"
 )

@@ -3,15 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	cloudevents "github.com/cloudevents/sdk-go/v2"
-	"github.com/kelseyhightower/envconfig"
-	"k8s.io/client-go/dynamic"
 	"log"
 	"net/http"
 	"os"
 	"os/user"
 	"path"
 	"strings"
+
+	cloudevents "github.com/cloudevents/sdk-go/v2"
+	"github.com/kelseyhightower/envconfig"
+	"k8s.io/client-go/dynamic"
 
 	"github.com/n3wscott/graph/pkg/config"
 	"github.com/n3wscott/graph/pkg/controller"
