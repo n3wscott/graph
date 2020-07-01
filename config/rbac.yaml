@@ -6,7 +6,7 @@ metadata:
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: n3wscott-graph
 rules:
@@ -57,13 +57,7 @@ rules:
       - n3wscott.com
     resources: ['*']
     verbs: *readOnly
----
 
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: n3wscott-graph
-rules:
   # API Extensions read
   - apiGroups:
       -  apiextensions.k8s.io
@@ -73,21 +67,6 @@ rules:
       - get
       - list
       - watch
-
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: n3wscott-graph
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: n3wscott-graph
-subjects:
-  - kind: ServiceAccount
-    name: n3wscott-graph
-    namespace: default
 
 ---
 
