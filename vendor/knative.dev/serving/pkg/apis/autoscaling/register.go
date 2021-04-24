@@ -19,6 +19,8 @@ package autoscaling
 import "time"
 
 const (
+	domain = ".knative.dev"
+
 	// InternalGroupName is the internal autoscaling group name. This is used for CRDs.
 	InternalGroupName = "autoscaling.internal.knative.dev"
 
@@ -49,6 +51,9 @@ const (
 	// allow-zero-initial-scale of config-autoscaler is true.
 	InitialScaleAnnotationKey = GroupName + "/initialScale"
 
+	// ScaleDownDelayAnnotationKey is the annotation to specify a scale down delay.
+	ScaleDownDelayAnnotationKey = GroupName + "/scaleDownDelay"
+
 	// MetricAnnotationKey is the annotation to specify what metric the PodAutoscaler
 	// should be scaled on. For example,
 	//   autoscaling.knative.dev/metric: cpu
@@ -77,6 +82,28 @@ const (
 	// This is the per-revision setting compliment to the
 	// scale-to-zero-pod-retention-period global setting.
 	ScaleToZeroPodRetentionPeriodKey = GroupName + "/scaleToZeroPodRetentionPeriod"
+
+	// MetricAggregationAlgorithmKey is the annotation that can be used for selection
+	// of the algorithm to use for averaging metric data in the Autoscaler.
+	// Since autoscalers are a pluggable concept, this field is only validated
+	// for Revisions that are owned by Knative Pod Autoscaler.
+	// The algorithm will apply to both panic and stagble windows.
+	// NB: this is an Alpha feature and can be removed or modified
+	//     at any point.
+	// Possible values for KPA are:
+	// - empty/missing or "linear" — linear average over the whole
+	//   metric window (default);
+	// - weightedExponential — weighted average with exponential decay.
+	//   KPA will compute the decay multiplier automatically based on the window size
+	//   and it is at least 0.2. This algorithm might not utilize all the values
+	//   in the window, due to their coefficients being infinitesimal.
+	MetricAggregationAlgorithmKey = GroupName + "/metricAggregationAlgorithm"
+	// MetricAggregationAlgorithmLinear is the linear aggregation algorithm with all weights
+	// equal to 1.
+	MetricAggregationAlgorithmLinear = "linear"
+	// MetricAggregationAlgorithmWeightedExponential is the weighted aggregation algorithm
+	// with exponentially decaying weights.
+	MetricAggregationAlgorithmWeightedExponential = "weightedExponential"
 
 	// WindowAnnotationKey is the annotation to specify the time
 	// interval over which to calculate the average metric.  Larger
@@ -167,13 +194,4 @@ const (
 	// PanicThresholdPercentageMax is the counterpart to the PanicThresholdPercentageMin
 	// but bounding from above.
 	PanicThresholdPercentageMax = 1000.0
-
-	// KPALabelKey is the label key attached to a K8s Service to hint to the KPA
-	// which services/endpoints should trigger reconciles.
-	KPALabelKey = GroupName + "/kpa"
-
-	// PreferForScaleDownLabelKey is the label key set on a pod which is selected
-	// by the autoscaler as a candidate for removal. Once the label is set to "true", it
-	// signals the QueueProxy to fail readiness on the pod
-	PreferForScaleDownLabelKey = GroupName + "/prefer-for-scale-down"
 )

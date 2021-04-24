@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Knative Authors.
+Copyright 2019 The Knative Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import (
 // references a container image. Revisions are created by updates to a
 // Configuration.
 //
-// See also: https://github.com/knative/serving/blob/master/docs/spec/overview.md#revision
+// See also: https://github.com/knative/serving/blob/main/docs/spec/overview.md#revision
 type Revision struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -82,9 +82,9 @@ type RevisionSpec struct {
 	// +optional
 	ContainerConcurrency *int64 `json:"containerConcurrency,omitempty"`
 
-	// TimeoutSeconds holds the max duration the instance is allowed for
-	// responding to a request.  If unspecified, a system default will
-	// be provided.
+	// TimeoutSeconds is the maximum duration in seconds that the request routing
+	// layer will wait for a request delivered to a container to begin replying
+	// (send network traffic). If unspecified, a system default will be provided.
 	// +optional
 	TimeoutSeconds *int64 `json:"timeoutSeconds,omitempty"`
 }
@@ -124,6 +124,10 @@ type RevisionStatus struct {
 
 	// ServiceName holds the name of a core Kubernetes Service resource that
 	// load balances over the pods backing this Revision.
+	// Deprecated: revision service name is effectively equal to the revision name,
+	// as per #10540.
+	// 0.23 — stop populating
+	// 0.25 — remove.
 	// +optional
 	ServiceName string `json:"serviceName,omitempty"`
 
@@ -152,11 +156,18 @@ type RevisionStatus struct {
 	// for both serving and non serving containers.
 	// ref: http://bit.ly/image-digests
 	// +optional
-	ContainerStatuses []ContainerStatuses `json:"containerStatuses,omitempty"`
+	ContainerStatuses []ContainerStatus `json:"containerStatuses,omitempty"`
+
+	// ActualReplicas reflects the amount of ready pods running this revision.
+	// +optional
+	ActualReplicas int32 `json:"actualReplicas,omitempty"`
+	// DesiredReplicas reflects the desired amount of pods running this revision.
+	// +optional
+	DesiredReplicas int32 `json:"desiredReplicas,omitempty"`
 }
 
-// ContainerStatuses holds the information of container name and image digest value
-type ContainerStatuses struct {
+// ContainerStatus holds the information of container name and image digest value
+type ContainerStatus struct {
 	Name        string `json:"name,omitempty"`
 	ImageDigest string `json:"imageDigest,omitempty"`
 }

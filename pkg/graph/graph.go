@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	flowsv1beta1 "knative.dev/eventing/pkg/apis/flows/v1beta1"
-	messagingv1beta1 "knative.dev/eventing/pkg/apis/messaging/v1beta1"
-	"knative.dev/pkg/apis"
-
-	"k8s.io/apimachinery/pkg/runtime/schema"
-
 	"github.com/tmc/dot"
-	eventingv1beta1 "knative.dev/eventing/pkg/apis/eventing/v1beta1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	eventingv1 "knative.dev/eventing/pkg/apis/eventing/v1"
+	flowsv1 "knative.dev/eventing/pkg/apis/flows/v1"
+	messagingv1 "knative.dev/eventing/pkg/apis/messaging/v1"
+	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 	servingv1 "knative.dev/serving/pkg/apis/serving/v1"
 
 	"github.com/n3wscott/graph/pkg/knative"
@@ -59,7 +56,7 @@ func (g *Graph) newEdge(src, dst *dot.Node) *dot.Edge {
 	return e
 }
 
-//func (g *Graph) AddChannel(channel eventingv1beta1.Channel) {
+//func (g *Graph) AddChannel(channel eventingv1.Channel) {
 //	ck := channelKey(channel.Name)
 //	uri := channel.Status.Address.GetURL()
 //	dns := strings.TrimSuffix((&uri).String(), "/")
@@ -84,7 +81,7 @@ func (g *Graph) newEdge(src, dst *dot.Node) *dot.Edge {
 
 // TODO: add channel ducktype.
 
-func (g *Graph) AddInMemoryChannel(channel messagingv1beta1.InMemoryChannel) {
+func (g *Graph) AddInMemoryChannel(channel messagingv1.InMemoryChannel) {
 	ck := inMemoryChannelKey(channel.Name)
 	uri := channel.Status.Address.URL
 	dns := strings.TrimSuffix(uri.String(), "/")
@@ -107,7 +104,7 @@ func (g *Graph) AddInMemoryChannel(channel messagingv1beta1.InMemoryChannel) {
 	g.AddSubgraph(cg)
 }
 
-func (g *Graph) AddSubscription(subscription messagingv1beta1.Subscription) {
+func (g *Graph) AddSubscription(subscription messagingv1.Subscription) {
 	sk := subscriptionKey(subscription.Name)
 	sn := dot.NewNode("Subscription " + subscription.Name)
 	_ = sn.Set("URL", knative.ToYamlViewURL(subscription.Name, subscription.Kind, subscription.APIVersion))
@@ -135,7 +132,7 @@ func (g *Graph) AddSubscription(subscription messagingv1beta1.Subscription) {
 	}
 }
 
-func (g *Graph) AddBroker(broker eventingv1beta1.Broker) {
+func (g *Graph) AddBroker(broker eventingv1.Broker) {
 	key := brokerKey(broker.Name)
 	uri := broker.Status.Address.URL
 	dns := strings.TrimSuffix(uri.String(), "/")
@@ -195,7 +192,7 @@ func (g *Graph) AddSource(source duckv1.Source) {
 	}
 }
 
-func (g *Graph) AddTrigger(trigger eventingv1beta1.Trigger) {
+func (g *Graph) AddTrigger(trigger eventingv1.Trigger) {
 	broker := trigger.Spec.Broker
 	bk := brokerKey(broker)
 	bn, ok := g.nodes[bk]
@@ -305,7 +302,7 @@ func (g *Graph) AddKnService(service servingv1.Service) {
 	}
 }
 
-func (g *Graph) AddSequence(seq flowsv1beta1.Sequence) {
+func (g *Graph) AddSequence(seq flowsv1.Sequence) {
 
 	key := sequenceKey(seq.Name)
 
@@ -391,28 +388,6 @@ func getColorMapForStatus(status duckv1.Status) map[string]string {
 	if cond == nil {
 		cond = status.GetCondition(apis.ConditionSucceeded)
 	}
-	if cond == nil {
-		attrs["color"] = "purple"
-		attrs["tootlip"] = "missing status field"
-	} else if cond.IsTrue() {
-		attrs["color"] = "black"
-		attrs["tooltip"] = fmt.Sprintf("Ready as of %s", cond.LastTransitionTime.Inner.String())
-	} else if cond.IsUnknown() {
-		attrs["color"] = "darkorange2"
-		attrs["tooltip"] = fmt.Sprintf("[%s] %s: %s", cond.Status, cond.Reason, cond.Message)
-	} else if cond.IsFalse() {
-		attrs["color"] = "deeppink"
-		attrs["tooltip"] = fmt.Sprintf("[%s] %s: %s", cond.Status, cond.Reason, cond.Message)
-	}
-	return attrs
-}
-
-func getColorMapForStatusV1Beta1(status duckv1beta1.Status) map[string]string {
-	cond := status.GetCondition(apis.ConditionReady)
-	if cond == nil {
-		cond = status.GetCondition(apis.ConditionSucceeded)
-	}
-	attrs := make(map[string]string)
 	if cond == nil {
 		attrs["color"] = "purple"
 		attrs["tootlip"] = "missing status field"

@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Knative Authors.
+Copyright 2019 The Knative Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,13 +30,32 @@ func (*Configuration) GetConditionSet() apis.ConditionSet {
 }
 
 // GetGroupVersionKind returns the GroupVersionKind.
-func (r *Configuration) GetGroupVersionKind() schema.GroupVersionKind {
+func (*Configuration) GetGroupVersionKind() schema.GroupVersionKind {
 	return SchemeGroupVersion.WithKind("Configuration")
 }
 
-// IsReady returns if the configuration is ready to serve the requested configuration.
-func (cs *ConfigurationStatus) IsReady() bool {
-	return configCondSet.Manage(cs).IsHappy()
+// IsReady returns true if the Status condition ConfigurationConditionReady
+// is true and the latest spec has been observed.
+func (c *Configuration) IsReady() bool {
+	cs := c.Status
+	return cs.ObservedGeneration == c.Generation &&
+		cs.GetCondition(ConfigurationConditionReady).IsTrue()
+}
+
+// IsFailed returns true if the resource has observed
+// the latest generation and ready is false.
+func (c *Configuration) IsFailed() bool {
+	cs := c.Status
+	return cs.ObservedGeneration == c.Generation &&
+		cs.GetCondition(ConfigurationConditionReady).IsFalse()
+}
+
+// IsLatestReadyRevisionNameUpToDate returns true if the Configuration is ready
+// and LatestCreateRevisionName is equal to LatestReadyRevisionName. Otherwise
+// it returns false.
+func (c *Configuration) IsLatestReadyRevisionNameUpToDate() bool {
+	return c.IsReady() &&
+		c.Status.LatestCreatedRevisionName == c.Status.LatestReadyRevisionName
 }
 
 // InitializeConditions sets the initial values to the conditions.
@@ -51,14 +70,9 @@ func (cs *ConfigurationSpec) GetTemplate() *RevisionTemplateSpec {
 	return &cs.Template
 }
 
-// IsLatestReadyRevisionNameUpToDate returns true if the Configuration is ready
-// and LatestCreateRevisionName is equal to LatestReadyRevisionName. Otherwise
-// it returns false.
-func (cs *ConfigurationStatus) IsLatestReadyRevisionNameUpToDate() bool {
-	return cs.IsReady() &&
-		cs.LatestCreatedRevisionName == cs.LatestReadyRevisionName
-}
-
+// SetLatestCreatedRevisionName sets the LatestCreatedRevisionName on the
+// revision and sets the ConfigurationConditionReady state to unknown if this
+// does not match the LatestReadyRevisionName.
 func (cs *ConfigurationStatus) SetLatestCreatedRevisionName(name string) {
 	cs.LatestCreatedRevisionName = name
 	if cs.LatestReadyRevisionName != name {
@@ -67,6 +81,9 @@ func (cs *ConfigurationStatus) SetLatestCreatedRevisionName(name string) {
 	}
 }
 
+// SetLatestReadyRevisionName sets the LatestReadyRevisionName on the revision.
+// If this matches the LatestCreatedRevisionName, the
+// ConfigurationConditionReady condition is set to true.
 func (cs *ConfigurationStatus) SetLatestReadyRevisionName(name string) {
 	cs.LatestReadyRevisionName = name
 	if cs.LatestReadyRevisionName == cs.LatestCreatedRevisionName {
@@ -74,6 +91,8 @@ func (cs *ConfigurationStatus) SetLatestReadyRevisionName(name string) {
 	}
 }
 
+// MarkLatestCreatedFailed marks the ConfigurationConditionReady condition to
+// indicate that the Revision failed.
 func (cs *ConfigurationStatus) MarkLatestCreatedFailed(name, message string) {
 	configCondSet.Manage(cs).MarkFalse(
 		ConfigurationConditionReady,
@@ -81,6 +100,8 @@ func (cs *ConfigurationStatus) MarkLatestCreatedFailed(name, message string) {
 		"Revision %q failed with message: %s.", name, message)
 }
 
+// MarkRevisionCreationFailed marks the ConfigurationConditionReady condition
+// to indicate the Revision creation failed.
 func (cs *ConfigurationStatus) MarkRevisionCreationFailed(message string) {
 	configCondSet.Manage(cs).MarkFalse(
 		ConfigurationConditionReady,
@@ -88,6 +109,8 @@ func (cs *ConfigurationStatus) MarkRevisionCreationFailed(message string) {
 		"Revision creation failed with message: %s.", message)
 }
 
+// MarkLatestReadyDeleted marks the ConfigurationConditionReady condition to
+// indicate that the Revision was deleted.
 func (cs *ConfigurationStatus) MarkLatestReadyDeleted() {
 	configCondSet.Manage(cs).MarkFalse(
 		ConfigurationConditionReady,

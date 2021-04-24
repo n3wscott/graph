@@ -1,6 +1,7 @@
 package knative
 
 import (
+	"context"
 	"log"
 
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
@@ -20,7 +21,7 @@ func (c *Client) SourceCRDs() []apiextensions.CustomResourceDefinition {
 	}
 	like := apiextensions.CustomResourceDefinition{}
 
-	list, err := c.dc.Resource(gvr).List(metav1.ListOptions{LabelSelector: "eventing.knative.dev/source=true"})
+	list, err := c.dc.Resource(gvr).List(context.Background(), metav1.ListOptions{LabelSelector: "eventing.knative.dev/source=true"})
 	if err != nil {
 		log.Printf("Failed to List Sources, %v", err)
 		return nil
@@ -64,7 +65,7 @@ func crdsToGVR(crds []apiextensions.CustomResourceDefinition) []schema.GroupVers
 func (c *Client) Addressable(namespace string, gvr schema.GroupVersionResource) []duckv1.AddressableType {
 	like := duckv1.AddressableType{}
 
-	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
+	list, err := c.dc.Resource(gvr).Namespace(namespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		log.Printf("Failed to List Addressables, [%+v], %v", gvr, err)
 		return nil
