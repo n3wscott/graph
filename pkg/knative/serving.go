@@ -1,6 +1,7 @@
 package knative
 
 import (
+	"context"
 	"log"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +18,7 @@ func (c *Client) KnServices(namespace string, yv *[]YamlView) []servingv1.Servic
 	}
 	like := servingv1.Service{}
 
-	list, err := c.dc.Resource(gvr).Namespace(namespace).List(metav1.ListOptions{})
+	list, err := c.dc.Resource(gvr).Namespace(namespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		log.Printf("Failed to List Services, %v", err)
 		return nil

@@ -1,24 +1,19 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"os/user"
-	"path"
 	"strings"
 
 	cloudevents "github.com/cloudevents/sdk-go/v2"
 	"github.com/kelseyhightower/envconfig"
-	"k8s.io/client-go/dynamic"
-
-	"github.com/n3wscott/graph/pkg/config"
 	"github.com/n3wscott/graph/pkg/controller"
-
+	"knative.dev/pkg/injection"
+	"knative.dev/pkg/injection/clients/dynamicclient"
 	// Uncomment the following line to load the gcp plugin (only required to authenticate against GKE clusters).
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	// _ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 type envConfig struct {
@@ -28,23 +23,6 @@ type envConfig struct {
 	Target    string `envconfig:"TARGET"`
 }
 
-var (
-	cluster    string
-	kubeconfig string
-)
-
-func init() {
-	flag.StringVar(&cluster, "cluster", "",
-		"Provide the cluster to test against. Defaults to the current cluster in kubeconfig.")
-
-	var defaultKubeconfig string
-	if usr, err := user.Current(); err == nil {
-		defaultKubeconfig = path.Join(usr.HomeDir, ".kube/config")
-	}
-
-	flag.StringVar(&kubeconfig, "kubeconfig", defaultKubeconfig,
-		"Provide the path to the `kubeconfig` file.")
-}
 func main() {
 	var env envConfig
 	if err := envconfig.Process("", &env); err != nil {
@@ -55,11 +33,8 @@ func main() {
 		env.FilePath = env.FilePath + "/"
 	}
 
-	cfg, err := config.BuildClientConfig(kubeconfig, cluster)
-	if err != nil {
-		log.Fatalf("Error building kubeconfig: %s", err)
-	}
-	client := dynamic.NewForConfigOrDie(cfg)
+	ctx, _ := injection.EnableInjectionOrDie(nil, nil)
+	client := dynamicclient.Get(ctx)
 
 	c := controller.New(env.FilePath, env.Namespace, client)
 

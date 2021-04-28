@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Knative Authors.
+Copyright 2019 The Knative Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ func TransformDeploymentStatus(ds *appsv1.DeploymentStatus) *duckv1.Status {
 
 	depCondSet.Manage(s).InitializeConditions()
 	// The absence of this condition means no failure has occurred. If we find it
-	// below, we'll ovewrwrite this.
+	// below, we'll overwrite this.
 	depCondSet.Manage(s).MarkTrue(DeploymentConditionReplicaSetReady)
 
 	for _, cond := range ds.Conditions {
