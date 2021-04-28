@@ -19,7 +19,6 @@ jobs:
 
     env:
       GOPATH: ${{ github.workspace }}
-      GO111MODULE: off
 
     steps:
 

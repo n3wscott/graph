@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOPATH: ${{ github.workspace }}
-      GO111MODULE: off
       KO_DOCKER_REPO: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
 
     steps:
