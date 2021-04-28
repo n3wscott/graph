@@ -2,9 +2,9 @@ name: Test
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ master ]
+    branches: [ main, master ]
 
 jobs:
 
@@ -23,16 +23,12 @@ jobs:
     steps:
 
     - name: Set up Go ${{ matrix.go-version }}
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
-      id: go
 
     - name: Check out code onto GOPATH
       uses: actions/checkout@v2
-      with:
-        fetch-depth: 1
-        path: ./src/github.com/${{ github.repository }}
 
     - name: Test
-      run: go test -race github.com/${{ github.repository }}/...
+      run: go test -race ./...

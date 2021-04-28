@@ -17,15 +17,9 @@ jobs:
 
     steps:
     - name: Set up Go 1.16.x
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v2
       with:
         go-version: 1.16.x
-
-    - name: Add GOPATH/bin to PATH
-      shell: bash
-      run: |
-        echo "::set-env name=GOPATH::$(go env GOPATH)"
-        echo "::add-path::$(go env GOPATH)/bin"
 
     - name: Setup ko
       run: |
@@ -34,9 +28,6 @@ jobs:
 
     - name: Check out code onto GOPATH
       uses: actions/checkout@v2
-      with:
-        fetch-depth: 1
-        path: ./src/github.com/${{ github.repository }}
 
     - name: Create Release
       id: create_release
@@ -52,8 +43,6 @@ jobs:
     - name: Build and Publish images, Produce release artifact.
       working-directory: ./src/github.com/${{ github.repository }}
       run: |
-        export GO111MODULE=on
-        export GOFLAGS=-mod=vendor
         ko resolve --tags $(basename "${{ github.ref }}" ) -BRf config/ > release.yaml
 
     - name: Upload Release Asset
@@ -63,6 +52,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./src/github.com/${{ github.repository }}/release.yaml
+        asset_path: ./release.yaml
         asset_name: release.yaml
         asset_content_type: text/plain

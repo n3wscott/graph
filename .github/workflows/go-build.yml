@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ master ]
+    branches: [ main, master ]
 
 jobs:
 
@@ -17,25 +17,18 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
 
-    env:
-      GOPATH: ${{ github.workspace }}
-
     steps:
 
     - name: Set up Go ${{ matrix.go-version }}
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v2
       with:
         go-version: ${{ matrix.go-version }}
-      id: go
 
     - name: Check out code onto GOPATH
       uses: actions/checkout@v2
-      with:
-        fetch-depth: 1
-        path: ./src/github.com/${{ github.repository }}
 
     - name: Vet
-      run: go vet github.com/${{ github.repository }}/...
+      run: go vet ./...
 
     - name: Build
-      run: go build -v github.com/${{ github.repository }}/...
+      run: go build -v ./...
