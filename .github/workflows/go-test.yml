@@ -27,5 +27,8 @@ jobs:
     - name: Check out code onto GOPATH
       uses: actions/checkout@v2
 
-    - name: Test
-      run: go test -race ./...
+    - name: Test cmd
+      run: go test -race ./cmd/...
+
+    - name: Test pkg
+      run: go test -race ./pkg/...
