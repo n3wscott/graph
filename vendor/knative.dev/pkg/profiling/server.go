@@ -20,15 +20,21 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/pprof"
+	"os"
 	"strconv"
 	"sync/atomic"
+	"time"
 
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
 )
 
 const (
-	// ProfilingPort specifies the port where profiling data is available when profiling is enabled
+	// ProfilingPortKey specified the name of an environment variable that
+	// may be used to override the default profiling port.
+	ProfilingPortKey = "PROFILING_PORT"
+
+	// ProfilingPort specifies the default port where profiling data is available when profiling is enabled
 	ProfilingPort = 8008
 
 	// profilingKey is the name of the key in config-observability config map
@@ -39,7 +45,7 @@ const (
 // Handler holds the main HTTP handler and a flag indicating
 // whether the handler is active
 type Handler struct {
-	enabled int32
+	enabled *atomic.Bool
 	handler http.Handler
 	log     *zap.SugaredLogger
 }
@@ -56,16 +62,19 @@ func NewHandler(logger *zap.SugaredLogger, enableProfiling bool) *Handler {
 	mux.HandleFunc(pprofPrefix+"symbol", pprof.Symbol)
 	mux.HandleFunc(pprofPrefix+"trace", pprof.Trace)
 
-	logger.Infof("Profiling enabled: %t", enableProfiling)
+	logger.Info("Profiling enabled: ", enableProfiling)
+	var enabled atomic.Bool
+	enabled.Store(enableProfiling)
+
 	return &Handler{
-		enabled: boolToInt32(enableProfiling),
+		enabled: &enabled,
 		handler: mux,
 		log:     logger,
 	}
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if atomic.LoadInt32(&h.enabled) == 1 {
+	if h.enabled.Load() {
 		h.handler.ServeHTTP(w, r)
 	} else {
 		http.NotFoundHandler().ServeHTTP(w, r)
@@ -93,24 +102,21 @@ func (h *Handler) UpdateFromConfigMap(configMap *corev1.ConfigMap) {
 		return
 	}
 
-	new := boolToInt32(enabled)
-	old := atomic.SwapInt32(&h.enabled, new)
-	if old != new {
-		h.log.Infof("Profiling enabled: %t", enabled)
+	if h.enabled.Swap(enabled) != enabled {
+		h.log.Info("Profiling enabled: ", enabled)
 	}
 }
 
 // NewServer creates a new http server that exposes profiling data on the default profiling port
 func NewServer(handler http.Handler) *http.Server {
-	return &http.Server{
-		Addr:    ":" + strconv.Itoa(ProfilingPort),
-		Handler: handler,
+	port := os.Getenv(ProfilingPortKey)
+	if port == "" {
+		port = strconv.Itoa(ProfilingPort)
 	}
-}
 
-func boolToInt32(b bool) int32 {
-	if b {
-		return 1
+	return &http.Server{
+		Addr:              ":" + port,
+		Handler:           handler,
+		ReadHeaderTimeout: time.Minute, //https://medium.com/a-journey-with-go/go-understand-and-mitigate-slowloris-attack-711c1b1403f6
 	}
-	return 0
 }
