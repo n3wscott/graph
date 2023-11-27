@@ -18,10 +18,11 @@ package v1
 
 import (
 	"context"
-
-	"github.com/google/uuid"
+	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"knative.dev/pkg/apis"
 	"knative.dev/pkg/kmeta"
 	"knative.dev/pkg/ptr"
@@ -30,6 +31,11 @@ import (
 
 // SetDefaults implements apis.Defaultable
 func (r *Revision) SetDefaults(ctx context.Context) {
+	// SetDefaults may update revision spec which is immutable.
+	// See: https://github.com/knative/serving/issues/8128 for details.
+	if apis.IsInUpdate(ctx) {
+		return
+	}
 	r.Spec.SetDefaults(apis.WithinSpec(ctx))
 }
 
@@ -42,55 +48,68 @@ func (rts *RevisionTemplateSpec) SetDefaults(ctx context.Context) {
 func (rs *RevisionSpec) SetDefaults(ctx context.Context) {
 	cfg := config.FromContextOrDefaults(ctx)
 
-	// Default TimeoutSeconds based on our configmap
+	// Default TimeoutSeconds based on our configmap.
 	if rs.TimeoutSeconds == nil || *rs.TimeoutSeconds == 0 {
 		rs.TimeoutSeconds = ptr.Int64(cfg.Defaults.RevisionTimeoutSeconds)
 	}
 
-	// Default ContainerConcurrency based on our configmap
+	// Default ContainerConcurrency based on our configmap.
 	if rs.ContainerConcurrency == nil {
 		rs.ContainerConcurrency = ptr.Int64(cfg.Defaults.ContainerConcurrency)
 	}
 
+	// Avoid clashes with user-supplied names when generating defaults.
+	containerNames := make(sets.String, len(rs.PodSpec.Containers)+len(rs.PodSpec.InitContainers))
 	for idx := range rs.PodSpec.Containers {
-		if rs.PodSpec.Containers[idx].Name == "" {
-			if len(rs.PodSpec.Containers) > 1 {
-				rs.PodSpec.Containers[idx].Name = kmeta.ChildName(cfg.Defaults.UserContainerName(ctx), "-"+uuid.New().String())
-			} else {
-				rs.PodSpec.Containers[idx].Name = cfg.Defaults.UserContainerName(ctx)
-			}
-		}
-
-		rs.applyDefault(&rs.PodSpec.Containers[idx], cfg)
+		containerNames.Insert(rs.PodSpec.Containers[idx].Name)
+	}
+	for idx := range rs.PodSpec.InitContainers {
+		containerNames.Insert(rs.PodSpec.InitContainers[idx].Name)
+	}
+	defaultUserContainerName := cfg.Defaults.UserContainerName(ctx)
+	applyDefaultContainerNames(rs.PodSpec.Containers, containerNames, defaultUserContainerName)
+	defaultInitContainerName := cfg.Defaults.InitContainerName(ctx)
+	applyDefaultContainerNames(rs.PodSpec.InitContainers, containerNames, defaultInitContainerName)
+	for idx := range rs.PodSpec.Containers {
+		rs.applyDefault(ctx, &rs.PodSpec.Containers[idx], cfg)
+		rs.defaultSecurityContext(rs.PodSpec.SecurityContext, &rs.PodSpec.Containers[idx], cfg)
+	}
+	for idx := range rs.PodSpec.InitContainers {
+		rs.defaultSecurityContext(rs.PodSpec.SecurityContext, &rs.PodSpec.InitContainers[idx], cfg)
 	}
 }
 
-func (rs *RevisionSpec) applyDefault(container *corev1.Container, cfg *config.Config) {
+func (rs *RevisionSpec) applyDefault(ctx context.Context, container *corev1.Container, cfg *config.Config) {
 	if container.Resources.Requests == nil {
 		container.Resources.Requests = corev1.ResourceList{}
-	}
-	if _, ok := container.Resources.Requests[corev1.ResourceCPU]; !ok {
-		if rc := cfg.Defaults.RevisionCPURequest; rc != nil {
-			container.Resources.Requests[corev1.ResourceCPU] = *rc
-		}
-	}
-	if _, ok := container.Resources.Requests[corev1.ResourceMemory]; !ok {
-		if rm := cfg.Defaults.RevisionMemoryRequest; rm != nil {
-			container.Resources.Requests[corev1.ResourceMemory] = *rm
-		}
 	}
 
 	if container.Resources.Limits == nil {
 		container.Resources.Limits = corev1.ResourceList{}
 	}
-	if _, ok := container.Resources.Limits[corev1.ResourceCPU]; !ok {
-		if rc := cfg.Defaults.RevisionCPULimit; rc != nil {
-			container.Resources.Limits[corev1.ResourceCPU] = *rc
+
+	for _, r := range []struct {
+		Name    corev1.ResourceName
+		Request *resource.Quantity
+		Limit   *resource.Quantity
+	}{{
+		Name:    corev1.ResourceCPU,
+		Request: cfg.Defaults.RevisionCPURequest,
+		Limit:   cfg.Defaults.RevisionCPULimit,
+	}, {
+		Name:    corev1.ResourceMemory,
+		Request: cfg.Defaults.RevisionMemoryRequest,
+		Limit:   cfg.Defaults.RevisionMemoryLimit,
+	}, {
+		Name:    corev1.ResourceEphemeralStorage,
+		Request: cfg.Defaults.RevisionEphemeralStorageRequest,
+		Limit:   cfg.Defaults.RevisionEphemeralStorageLimit,
+	}} {
+		if _, ok := container.Resources.Requests[r.Name]; !ok && r.Request != nil {
+			container.Resources.Requests[r.Name] = *r.Request
 		}
-	}
-	if _, ok := container.Resources.Limits[corev1.ResourceMemory]; !ok {
-		if rm := cfg.Defaults.RevisionMemoryLimit; rm != nil {
-			container.Resources.Limits[corev1.ResourceMemory] = *rm
+		if _, ok := container.Resources.Limits[r.Name]; !ok && r.Limit != nil {
+			container.Resources.Limits[r.Name] = *r.Limit
 		}
 	}
 
@@ -100,9 +119,21 @@ func (rs *RevisionSpec) applyDefault(container *corev1.Container, cfg *config.Co
 		rs.applyProbes(container)
 	}
 
+	if rs.PodSpec.EnableServiceLinks == nil && apis.IsInCreate(ctx) {
+		rs.PodSpec.EnableServiceLinks = cfg.Defaults.EnableServiceLinks
+	}
+
+	vNames := make(sets.String)
+	for _, v := range rs.PodSpec.Volumes {
+		if v.EmptyDir != nil || v.PersistentVolumeClaim != nil {
+			vNames.Insert(v.Name)
+		}
+	}
 	vms := container.VolumeMounts
 	for i := range vms {
-		vms[i].ReadOnly = true
+		if !vNames.Has(vms[i].Name) {
+			vms[i].ReadOnly = true
+		}
 	}
 }
 
@@ -112,12 +143,106 @@ func (*RevisionSpec) applyProbes(container *corev1.Container) {
 	}
 	if container.ReadinessProbe.TCPSocket == nil &&
 		container.ReadinessProbe.HTTPGet == nil &&
-		container.ReadinessProbe.Exec == nil {
+		container.ReadinessProbe.Exec == nil &&
+		container.ReadinessProbe.GRPC == nil {
 		container.ReadinessProbe.TCPSocket = &corev1.TCPSocketAction{}
+	}
+
+	if container.ReadinessProbe.GRPC != nil && container.ReadinessProbe.GRPC.Service == nil {
+		container.ReadinessProbe.GRPC.Service = ptr.String("")
 	}
 
 	if container.ReadinessProbe.SuccessThreshold == 0 {
 		container.ReadinessProbe.SuccessThreshold = 1
 	}
 
+	// Apply k8s defaults when ReadinessProbe.PeriodSeconds property is set
+	if container.ReadinessProbe.PeriodSeconds != 0 {
+		if container.ReadinessProbe.FailureThreshold == 0 {
+			container.ReadinessProbe.FailureThreshold = 3
+		}
+		if container.ReadinessProbe.TimeoutSeconds == 0 {
+			container.ReadinessProbe.TimeoutSeconds = 1
+		}
+	}
+}
+
+// Upgrade SecurityContext for this container and the Pod definition to use settings
+// for the `restricted` profile when the feature flag is enabled.
+// This does not currently set `runAsNonRoot` for the restricted profile, because
+// that feels harder to default safely.
+func (rs *RevisionSpec) defaultSecurityContext(psc *corev1.PodSecurityContext, container *corev1.Container, cfg *config.Config) {
+	if cfg.Features.SecurePodDefaults != config.Enabled {
+		return
+	}
+
+	if psc == nil {
+		psc = &corev1.PodSecurityContext{}
+	}
+
+	updatedSC := container.SecurityContext
+
+	if updatedSC == nil {
+		updatedSC = &corev1.SecurityContext{}
+	}
+
+	if updatedSC.AllowPrivilegeEscalation == nil {
+		updatedSC.AllowPrivilegeEscalation = ptr.Bool(false)
+	}
+	if psc.SeccompProfile == nil || psc.SeccompProfile.Type == "" {
+		if updatedSC.SeccompProfile == nil {
+			updatedSC.SeccompProfile = &corev1.SeccompProfile{}
+		}
+		if updatedSC.SeccompProfile.Type == "" {
+			updatedSC.SeccompProfile.Type = corev1.SeccompProfileTypeRuntimeDefault
+		}
+	}
+	if updatedSC.Capabilities == nil {
+		updatedSC.Capabilities = &corev1.Capabilities{}
+		updatedSC.Capabilities.Drop = []corev1.Capability{"ALL"}
+		// Default in NET_BIND_SERVICE to allow binding to low-numbered ports.
+		needsLowPort := false
+		for _, p := range container.Ports {
+			if p.ContainerPort < 1024 {
+				needsLowPort = true
+				break
+			}
+		}
+		if updatedSC.Capabilities.Add == nil && needsLowPort {
+			updatedSC.Capabilities.Add = []corev1.Capability{"NET_BIND_SERVICE"}
+		}
+	}
+
+	if psc.RunAsNonRoot == nil {
+		updatedSC.RunAsNonRoot = ptr.Bool(true)
+	}
+
+	if *updatedSC != (corev1.SecurityContext{}) {
+		container.SecurityContext = updatedSC
+	}
+}
+
+func applyDefaultContainerNames(containers []corev1.Container, containerNames sets.String, defaultContainerName string) {
+	// Default container name based on ContainerNameFromTemplate value from configmap.
+	// In multi-container or init-container mode, add a numeric suffix, avoiding clashes with user-supplied names.
+	nextSuffix := 0
+	for idx := range containers {
+		if containers[idx].Name == "" {
+			name := defaultContainerName
+
+			if len(containers) > 1 || containerNames.Has(name) {
+				for {
+					name = kmeta.ChildName(defaultContainerName, "-"+strconv.Itoa(nextSuffix))
+					nextSuffix++
+
+					// Continue until we get a name that doesn't clash with a user-supplied name.
+					if !containerNames.Has(name) {
+						break
+					}
+				}
+			}
+
+			containers[idx].Name = name
+		}
+	}
 }

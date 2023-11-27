@@ -16,7 +16,10 @@ limitations under the License.
 
 package serving
 
-import "k8s.io/apimachinery/pkg/runtime/schema"
+import (
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"knative.dev/pkg/kmap"
+)
 
 const (
 	// GroupName is the group name for knative labels and annotations
@@ -33,13 +36,37 @@ const (
 	// pinned a revision
 	RevisionLastPinnedAnnotationKey = GroupName + "/lastPinned"
 
+	// RevisionPreservedAnnotationKey is the annotation key used for preventing garbage collector
+	// from automatically deleting the revision.
+	RevisionPreservedAnnotationKey = GroupName + "/no-gc"
+
 	// RouteLabelKey is the label key attached to a Configuration indicating by
 	// which Route it is configured as traffic target.
+	// The key is also attached to Revision resources to indicate they are directly
+	// referenced by a Route, or are a child of a Configuration which is referenced by a Route.
 	// The key can also be attached to Ingress resources to indicate
 	// which Route triggered their creation.
 	// The key is also attached to k8s Service resources to indicate which Route
 	// triggered their creation.
 	RouteLabelKey = GroupName + "/route"
+
+	// RoutesAnnotationKey is an annotation attached to a Revision to indicate that it is
+	// referenced by one or many routes. The value is a comma separated list of Route names.
+	RoutesAnnotationKey = GroupName + "/routes"
+
+	// RolloutDurationKey is an annotation attached to a Route to indicate the duration
+	// of the rollout of the latest revision. The value must be a valid positive
+	// Golang time.Duration value serialized to string.
+	// The value can be specified with at most with a second precision.
+	RolloutDurationKey = GroupName + "/rollout-duration"
+
+	// RoutingStateLabelKey is the label attached to a Revision indicating
+	// its state in relation to serving a Route.
+	RoutingStateLabelKey = GroupName + "/routingState"
+
+	// RoutingStateModifiedAnnotationKey indicates the last time the RoutingStateLabel
+	// was modified. This is used for ordering when Garbage Collecting old Revisions.
+	RoutingStateModifiedAnnotationKey = GroupName + "/routingStateModified"
 
 	// RouteNamespaceLabelKey is the label key attached to a Ingress
 	// by a Route to indicate which namespace the Route was created in.
@@ -53,9 +80,28 @@ const (
 	// its unique identifier
 	RevisionUID = GroupName + "/revisionUID"
 
+	// ConfigurationUIDLabelKey is the label key attached to a pod to reference its
+	// Knative Configuration by its unique UID
+	ConfigurationUIDLabelKey = GroupName + "/configurationUID"
+
+	// ServiceUIDLabelKey is the label key attached to a pod to reference its
+	// Knative Service by its unique UID
+	ServiceUIDLabelKey = GroupName + "/serviceUID"
+
 	// ServiceLabelKey is the label key attached to a Route and Configuration indicating by
 	// which Service they are created.
 	ServiceLabelKey = GroupName + "/service"
+
+	// DomainMappingUIDLabelKey is the label key attached to Ingress resources to indicate
+	// which DomainMapping triggered their creation.
+	// This uses a uid rather than a name because domain mapping names can exceed
+	// a label's 63 character limit.
+	DomainMappingUIDLabelKey = GroupName + "/domainMappingUID"
+
+	// DomainMappingNamespaceLabelKey is the label key attached to Ingress
+	// resources created by a DomainMapping to indicate which namespace the
+	// DomainMapping was created in.
+	DomainMappingNamespaceLabelKey = GroupName + "/domainMappingNamespace"
 
 	// ConfigurationGenerationLabelKey is the label key attached to a Revision indicating the
 	// metadata generation of the Configuration that created this revision
@@ -68,19 +114,36 @@ const (
 	// last updated the resource.
 	UpdaterAnnotation = GroupName + "/lastModifier"
 
-	// QueueSideCarResourcePercentageAnnotation is the percentage of user container resources to be used for queue-proxy
+	// QueueSidecarResourcePercentageAnnotationKey is the percentage of user container resources to be used for queue-proxy
 	// It has to be in [0.1,100]
-	QueueSideCarResourcePercentageAnnotation = "queue.sidecar." + GroupName + "/resourcePercentage"
+	// Deprecated: Please consider setting resources explicitly for the QP per service, see `QueueSidecarCPUResourceRequestAnnotationKey` for example.
+	QueueSidecarResourcePercentageAnnotationKey = "queue.sidecar." + GroupName + "/resource-percentage"
 
-	// VisibilityLabelKey is the label to indicate visibility of Route
-	// and KServices.  It can be an annotation too but since users are
-	// already using labels for domain, it probably best to keep this
-	// consistent.
-	VisibilityLabelKey = "serving.knative.dev/visibility"
+	// QueueSidecarCPUResourceRequestAnnotationKey is the explicit value of the cpu request for queue-proxy's request resources
+	QueueSidecarCPUResourceRequestAnnotationKey = "queue.sidecar." + GroupName + "/cpu-resource-request"
+
+	// QueueSidecarCPUResourceLimitAnnotationKey is the explicit value of the cpu limit for queue-proxy's limit resources
+	QueueSidecarCPUResourceLimitAnnotationKey = "queue.sidecar." + GroupName + "/cpu-resource-limit"
+
+	// QueueSidecarMemoryResourceRequestAnnotationKey is the explicit value of the memory request for queue-proxy's request resources
+	QueueSidecarMemoryResourceRequestAnnotationKey = "queue.sidecar." + GroupName + "/memory-resource-request"
+
+	// QueueSidecarMemoryResourceLimitAnnotationKey is the explicit value of the memory limit for queue-proxy's limit resources
+	QueueSidecarMemoryResourceLimitAnnotationKey = "queue.sidecar." + GroupName + "/memory-resource-limit"
+
+	// QueueSidecarEphemeralStorageResourceRequestAnnotationKey is the explicit value of the ephemeral storage request for queue-proxy's request resources
+	QueueSidecarEphemeralStorageResourceRequestAnnotationKey = "queue.sidecar." + GroupName + "/ephemeral-storage-resource-request"
+
+	// QueueSidecarEphemeralStorageResourceLimitAnnotationKey is the explicit value of the ephemeral storage limit for queue-proxy's limit resources
+	QueueSidecarEphemeralStorageResourceLimitAnnotationKey = "queue.sidecar." + GroupName + "/ephemeral-storage-resource-limit"
+
 	// VisibilityClusterLocal is the label value for VisibilityLabelKey
 	// that will result to the Route/KService getting a cluster local
 	// domain suffix.
 	VisibilityClusterLocal = "cluster-local"
+
+	// ProgressDeadlineAnnotationKey is the label key for the per revision progress deadline to set for the deployment
+	ProgressDeadlineAnnotationKey = GroupName + "/progress-deadline"
 )
 
 var (
@@ -106,5 +169,37 @@ var (
 	RoutesResource = schema.GroupResource{
 		Group:    GroupName,
 		Resource: "routes",
+	}
+)
+
+var (
+	RolloutDurationAnnotation = kmap.KeyPriority{
+		RolloutDurationKey,
+		GroupName + "/rolloutDuration",
+	}
+	QueueSidecarResourcePercentageAnnotation = kmap.KeyPriority{
+		QueueSidecarResourcePercentageAnnotationKey,
+		"queue.sidecar." + GroupName + "/resourcePercentage",
+	}
+	QueueSidecarCPUResourceRequestAnnotation = kmap.KeyPriority{
+		QueueSidecarCPUResourceRequestAnnotationKey,
+	}
+	QueueSidecarCPUResourceLimitAnnotation = kmap.KeyPriority{
+		QueueSidecarCPUResourceLimitAnnotationKey,
+	}
+	QueueSidecarMemoryResourceRequestAnnotation = kmap.KeyPriority{
+		QueueSidecarMemoryResourceRequestAnnotationKey,
+	}
+	QueueSidecarMemoryResourceLimitAnnotation = kmap.KeyPriority{
+		QueueSidecarMemoryResourceLimitAnnotationKey,
+	}
+	QueueSidecarEphemeralStorageResourceRequestAnnotation = kmap.KeyPriority{
+		QueueSidecarEphemeralStorageResourceRequestAnnotationKey,
+	}
+	QueueSidecarEphemeralStorageResourceLimitAnnotation = kmap.KeyPriority{
+		QueueSidecarEphemeralStorageResourceLimitAnnotationKey,
+	}
+	ProgressDeadlineAnnotation = kmap.KeyPriority{
+		ProgressDeadlineAnnotationKey,
 	}
 )

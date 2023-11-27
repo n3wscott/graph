@@ -1,5 +1,5 @@
 /*
-Copyright 2019 The Knative Authors.
+Copyright 2019 The Knative Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import (
 // The Service's controller will track the statuses of its owned Configuration
 // and Route, reflecting their statuses and conditions as its own.
 //
-// See also: https://github.com/knative/serving/blob/master/docs/spec/overview.md#service
+// See also: https://github.com/knative/serving/blob/main/docs/spec/overview.md#service
 type Service struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

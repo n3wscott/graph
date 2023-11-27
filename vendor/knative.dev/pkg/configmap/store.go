@@ -23,21 +23,19 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-// ExampleKey signifies a given example configuration in a ConfigMap.
-const ExampleKey = "_example"
-
 // Logger is the interface that UntypedStore expects its logger to conform to.
 // UntypedStore will log when updates succeed or fail.
 type Logger interface {
+	Debugf(string, ...interface{})
 	Infof(string, ...interface{})
 	Fatalf(string, ...interface{})
 	Errorf(string, ...interface{})
 }
 
-// Constructors is a map for specifying config names to
+// Constructors is a map for specifying configmap names to
 // their function constructors
 //
-// The values of this map must be functions with the definition
+// # The values of this map must be functions with the definition
 //
 // func(*k8s.io/api/core/v1.ConfigMap) (... , error)
 //
@@ -62,7 +60,7 @@ type UntypedStore struct {
 // NewUntypedStore creates an UntypedStore with given name,
 // Logger and Constructors
 //
-// The Logger must not be nil
+// # The Logger must not be nil
 //
 // The values in the Constructors map must be functions with
 // the definition
@@ -154,12 +152,10 @@ func (s *UntypedStore) OnConfigChanged(c *corev1.ConfigMap) {
 		return
 	}
 
-	s.logger.Infof("%s config %q config was added or updated: %#v", s.name, name, result)
+	s.logger.Debugf("%s config %q config was added or updated: %#v", s.name, name, result)
 	storage.Store(result)
 
-	go func() {
-		for _, f := range s.onAfterStore {
-			f(name, result)
-		}
-	}()
+	for _, f := range s.onAfterStore {
+		f(name, result)
+	}
 }

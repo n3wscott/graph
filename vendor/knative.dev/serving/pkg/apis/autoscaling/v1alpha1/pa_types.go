@@ -1,5 +1,5 @@
 /*
-Copyright 2018 The Knative Authors.
+Copyright 2018 The Knative Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package v1alpha1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	net "knative.dev/networking/pkg/apis/networking"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	"knative.dev/pkg/kmeta"
-	net "knative.dev/serving/pkg/apis/networking"
 )
 
 // +genclient
@@ -32,7 +32,7 @@ import (
 // PodAutoscaler is a Knative abstraction that encapsulates the interface by which Knative
 // components instantiate autoscalers.  This definition is an abstraction that may be backed
 // by multiple definitions.  For more information, see the Knative Pluggability presentation:
-// https://docs.google.com/presentation/d/10KWynvAJYuOEWy69VBa6bHJVCqIsz1TNdEKosNvcpPY/edit
+// https://docs.google.com/presentation/d/19vW9HFZ6Puxt31biNZF3uLRejDmu82rxJIk1cWmxF7w/edit
 type PodAutoscaler struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -78,17 +78,6 @@ const (
 
 // PodAutoscalerSpec holds the desired state of the PodAutoscaler (from the client).
 type PodAutoscalerSpec struct {
-	// DeprecatedGeneration was used prior in Kubernetes versions <1.11
-	// when metadata.generation was not being incremented by the api server
-	//
-	// This property will be dropped in future Knative releases and should
-	// not be used - use metadata.generation
-	//
-	// Tracking issue: https://github.com/knative/serving/issues/643
-	//
-	// +optional
-	DeprecatedGeneration int64 `json:"generation,omitempty"`
-
 	// ContainerConcurrency specifies the maximum allowed
 	// in-flight (concurrent) requests per container of the Revision.
 	// Defaults to `0` which means unlimited concurrency.
@@ -99,7 +88,7 @@ type PodAutoscalerSpec struct {
 	// is responsible for quickly right-sizing.
 	ScaleTargetRef corev1.ObjectReference `json:"scaleTargetRef"`
 
-	// Reachable specifies whether or not the `ScaleTargetRef` can be reached (ie. has a route).
+	// Reachability specifies whether or not the `ScaleTargetRef` can be reached (ie. has a route).
 	// Defaults to `ReachabilityUnknown`
 	// +optional
 	Reachability ReachabilityType `json:"reachability,omitempty"`
@@ -112,8 +101,13 @@ const (
 	// PodAutoscalerConditionReady is set when the revision is starting to materialize
 	// runtime resources, and becomes true when those resources are ready.
 	PodAutoscalerConditionReady = apis.ConditionReady
+	// PodAutoscalerConditionScaleTargetInitialized is set when the PodAutoscaler's
+	// ScaleTargetRef was ready to serve traffic once.
+	PodAutoscalerConditionScaleTargetInitialized apis.ConditionType = "ScaleTargetInitialized"
 	// PodAutoscalerConditionActive is set when the PodAutoscaler's ScaleTargetRef is receiving traffic.
 	PodAutoscalerConditionActive apis.ConditionType = "Active"
+	// PodAutoscalerConditionSKSReady is set when SKS is ready.
+	PodAutoscalerConditionSKSReady = "SKSReady"
 )
 
 // PodAutoscalerStatus communicates the observed state of the PodAutoscaler (from the controller).
@@ -145,12 +139,7 @@ type PodAutoscalerList struct {
 	Items []PodAutoscaler `json:"items"`
 }
 
-// GetTypeMeta retrieves the ObjectMeta of the PodAutoscaler. Implements the KRShaped interface.
-func (t *PodAutoscaler) GetTypeMeta() *metav1.TypeMeta {
-	return &t.TypeMeta
-}
-
 // GetStatus retrieves the status of the PodAutoscaler. Implements the KRShaped interface.
-func (t *PodAutoscaler) GetStatus() *duckv1.Status {
-	return &t.Status.Status
+func (pa *PodAutoscaler) GetStatus() *duckv1.Status {
+	return &pa.Status.Status
 }

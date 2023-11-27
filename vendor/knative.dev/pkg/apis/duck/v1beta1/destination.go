@@ -18,6 +18,8 @@ package v1beta1
 
 import (
 	"context"
+	"crypto/x509"
+	"encoding/pem"
 
 	corev1 "k8s.io/api/core/v1"
 	"knative.dev/pkg/apis"
@@ -44,6 +46,13 @@ type Destination struct {
 	// URI can be an absolute URL(non-empty scheme and non-empty host) pointing to the target or a relative URI. Relative URIs will be resolved using the base URI retrieved from Ref.
 	// +optional
 	URI *apis.URL `json:"uri,omitempty"`
+
+	// CACerts are Certification Authority (CA) certificates in PEM format
+	// according to https://www.rfc-editor.org/rfc/rfc7468.
+	// If set, these CAs are appended to the set of CAs provided
+	// by the Addressable target, if any.
+	// +optional
+	CACerts *string `json:"CACerts,omitempty"`
 }
 
 func (dest *Destination) Validate(ctx context.Context) *apis.FieldError {
@@ -107,9 +116,11 @@ func ValidateDestination(dest Destination, allowDeprecatedFields bool) *apis.Fie
 	if ref != nil && dest.URI == nil {
 		if dest.Ref != nil {
 			return validateDestinationRef(*ref).ViaField("ref")
-		} else {
-			return validateDestinationRef(*ref)
 		}
+		return validateDestinationRef(*ref)
+	}
+	if dest.CACerts != nil {
+		return validateCACerts(dest.CACerts)
 	}
 	return nil
 }
@@ -137,10 +148,7 @@ func (dest *Destination) GetRef() *corev1.ObjectReference {
 	if dest.Ref != nil {
 		return dest.Ref
 	}
-	if ref := dest.deprecatedObjectReference(); ref != nil {
-		return ref
-	}
-	return nil
+	return dest.deprecatedObjectReference()
 }
 
 func validateDestinationRef(ref corev1.ObjectReference) *apis.FieldError {
@@ -157,5 +165,21 @@ func validateDestinationRef(ref corev1.ObjectReference) *apis.FieldError {
 		errs = errs.Also(apis.ErrMissingField("kind"))
 	}
 
+	return errs
+}
+func validateCACerts(CACert *string) *apis.FieldError {
+	// Check the object.
+	var errs *apis.FieldError
+
+	block, err := pem.Decode([]byte(*CACert))
+	if err != nil && block == nil {
+		errs = errs.Also(apis.ErrInvalidValue("CA Cert provided is invalid", "caCert"))
+		return errs
+	}
+	if block.Type != "CERTIFICATE" {
+		errs = errs.Also(apis.ErrInvalidValue("CA Cert provided is not a certificate", "caCert"))
+	} else if _, err := x509.ParseCertificate(block.Bytes); err != nil {
+		errs = errs.Also(apis.ErrInvalidValue("CA Cert provided is invalid", "caCert"))
+	}
 	return errs
 }
